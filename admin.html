@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRINTLAB · Panel de administración</title>
+<title>POKIDOKI · Panel de administración</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
 <style>
   :root{
     --bg:#14161b; --bg-alt:#1b1e24; --surface:#23272f;
-    --accent:#ff6a2c; --accent-2:#33e0c3;
+    --accent:#FC6C85; --accent-2:#33e0c3;
     --text:#edebe4; --text-mute:#8b909b; --line:rgba(255,255,255,0.08);
     --radius:14px;
     --font-display:'Chakra Petch', sans-serif;
@@ -144,7 +144,7 @@
 <body>
 
 <header>
-  <div class="logo"><span class="dot"></span>PRINTLAB<small>&nbsp;ADMIN</small></div>
+  <div class="logo"><span class="dot"></span>POKIDOKI-3D<small>&nbsp;ADMIN</small></div>
   <button class="btn btn-ghost btn-small" id="logoutBtn" style="display:none;">Cerrar sesión</button>
 </header>
 
@@ -209,7 +209,7 @@
           </select>
         </div>
         <div class="field">
-          <label for="pPrice">Precio (con moneda)</label>
+          <label for="pPrice">Precio</label>
           <input type="text" id="pPrice" placeholder="Bs. 90">
         </div>
         <div class="field full">
@@ -218,7 +218,7 @@
         </div>
         <div class="field">
           <label for="pMeta">Detalle técnico (opcional)</label>
-          <input type="text" id="pMeta" placeholder="PLA+ · 6h impresión">
+          <input type="text" id="pMeta" placeholder="6h impresión">
         </div>
         <div class="field full">
           <label>Foto o GIF del producto (opcional)</label>
@@ -235,7 +235,7 @@
           <input type="hidden" id="pImage" value="">
         </div>
       </div>
-      <p class="hint">Si no subís foto, se muestra un ícono genérico de la categoría. Podés subir imágenes normales (JPG, PNG) o GIF animados.</p>
+      <p class="hint">Si no subes la foto, se muestra un ícono genérico de la categoría. Podés subir imágenes normales (JPG, PNG) o GIF animados.</p>
       <div class="form-actions">
         <button class="btn btn-primary" id="saveProductBtn">Guardar producto</button>
         <button class="btn btn-ghost" id="cancelFormBtn">Cancelar</button>
