@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>POKIDOKI-3D · Catálogo de Impresión 3D</title>
+<title>PRINTLAB · Catálogo de Impresión 3D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Luckiest+Guy&family=Yuji+Syuku&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
     --bg:#14161b;
     --bg-alt:#1b1e24;
     --surface:#23272f;
-    --accent:#FC6C85;      /* filamento PLA naranja */
+    --accent:#ff6a2c;      /* filamento PLA naranja */
     --accent-soft:#ff6a2c33;
     --accent-2:#33e0c3;    /* acento cian */
     --text:#edebe4;
@@ -369,7 +369,7 @@
 
 <header>
   <div class="nav-top">
-    <div class="logo"><span class="dot"></span>POKIDOKI-3D<small>&nbsp;3D STUDIO</small></div>
+    <div class="logo"><span class="dot"></span>PRINTLAB<small>&nbsp;3D STUDIO</small></div>
     <a class="nav-support" id="navSupport" href="#" target="_blank" rel="noopener">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.9.5 3.7 1.5 5.3L2 22l4.9-1.4C8.4 21.5 10.2 22 12 22c5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3C4.4 15 4 13.5 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z"/></svg>
       <span class="label">Soporte por WhatsApp</span>
@@ -377,10 +377,7 @@
   </div>
   <nav class="filter-bar" id="filterBar">
     <button class="chip active" data-filter="todos">Todos</button>
-    <button class="chip" data-filter="mascaras">Máscaras</button>
-    <button class="chip" data-filter="llaveros">Llaveros</button>
-    <button class="chip" data-filter="figuras">Figuras</button>
-    <button class="chip" data-filter="armas">Armas</button>
+    <!-- Las categorías (Máscaras, Llaveros, etc.) se insertan acá solas -->
     <button class="chip" data-filter="especiales">Pedidos Especiales</button>
   </nav>
 </header>
@@ -389,7 +386,7 @@
   <section class="hero">
     <div>
       <span class="hero-eyebrow">Impresión 3D · La Paz</span>
-      <h1>En Pokidoki-3D<br><span class="accent-word">no solo imprimimos tus ideas </span>, las hacemos impreisonantes.</h1>
+      <h1>De tu idea a una<br><span class="accent-word">pieza impresa</span>, capa por capa.</h1>
       <p>Explorá el catálogo, elegí lo que más te guste y mandanos el pedido directo por WhatsApp. Sin formularios largos, sin vueltas.</p>
       <div class="hero-actions">
         <a href="#catalogo" class="btn btn-primary">Ver catálogo</a>
@@ -463,8 +460,8 @@
 </main>
 
 <footer>
-  <span>© 2026 POKIDOKI-3D Studio · Piezas impresas bajo pedido en La Paz, Bolivia</span>
-  <span>Pagina creada por @adrianbg.srl</span>
+  <span>© 2026 PrintLab 3D Studio · Piezas impresas bajo pedido en La Paz, Bolivia</span>
+  <span>Materiales: PLA · PLA+ · Resina</span>
 </footer>
 
 <a class="support-fab" id="fabSupport" href="#" target="_blank" rel="noopener" aria-label="Soporte por WhatsApp">
@@ -477,7 +474,7 @@
    Formato: código de país + número, sin espacios ni +
    Ejemplo Bolivia: 591 + número = 59170000000
 ====================================================== */
-const WHATSAPP_NUMBER = "+59176576780"; // TODO: reemplazar con tu número real
+const WHATSAPP_NUMBER = "59170000000"; // TODO: reemplazar con tu número real
 
 /* ======================================================
    LOGO ANIMADO POKIDOKI 3D (tarjeta del hero)
@@ -518,17 +515,22 @@ const ICONS = {
       <path d="M32 6a16 16 0 0 0-9 29c2 1.5 3 3.5 3 6h12c0-2.5 1-4.5 3-6a16 16 0 0 0-9-29Z"/>
       <path d="M27 47h10M29 53h6"/></svg>`
 };
+// Ícono genérico para categorías nuevas que el dueño cree (sin ícono propio)
+const DEFAULT_ICON = `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22 32 10 52 22 52 46 32 58 12 46Z"/><path d="M12 22 32 34 52 22M32 34v24"/></svg>`;
 
 /* ======================================================
-   CATEGORÍAS — los productos se cargan solos desde
-   Firestore (los agrega el dueño en admin.html)
+   CATEGORÍAS — ahora se cargan desde Firestore (las crea
+   el dueño en admin.html), no están fijas en el código
 ====================================================== */
-const CATEGORIES = [
-  { key:"mascaras",  label:"Máscaras", note:"Uso decorativo / cosplay" },
-  { key:"llaveros",  label:"Llaveros", note:"Personalizables" },
-  { key:"figuras",   label:"Figuras", note:"Piezas de colección" },
-  { key:"armas",     label:"Réplicas de utilería", note:"Decorativas, no funcionales" },
-];
+let CATEGORIES = [];
+
+function slugify(str){
+  return (str || "").toString().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "") || "cat";
+}
 
 /* ======================================================
    WHATSAPP
@@ -539,17 +541,17 @@ function openWhatsApp(message){
 }
 
 function pedirProducto(name, price){
-  const msg = `Hola! 👋 Vi este producto en el catálogo de POKIDOKI-3D y me interesa:\n\n🖨️ ${name}\nPrecio: ${price}\n\n¿Me confirman disponibilidad y tiempo de entrega?`;
+  const msg = `Hola! 👋 Vi este producto en el catálogo de PrintLab y me interesa:\n\n🖨️ ${name}\nPrecio: ${price}\n\n¿Me confirman disponibilidad y tiempo de entrega?`;
   openWhatsApp(msg);
 }
 
 document.getElementById("navSupport").addEventListener("click", (e)=>{
   e.preventDefault();
-  openWhatsApp("Hola! 👋 Necesito ayuda con un pedido en POKIDOKI-3D.");
+  openWhatsApp("Hola! 👋 Necesito ayuda con un pedido en PrintLab.");
 });
 document.getElementById("fabSupport").addEventListener("click", (e)=>{
   e.preventDefault();
-  openWhatsApp("Hola! 👋 Necesito ayuda con un pedido en POKIDOKI-3D.");
+  openWhatsApp("Hola! 👋 Necesito ayuda con un pedido en PrintLab.");
 });
 document.getElementById("sendSpecial").addEventListener("click", ()=>{
   const name = document.getElementById("specName").value.trim();
@@ -558,7 +560,7 @@ document.getElementById("sendSpecial").addEventListener("click", ()=>{
     document.getElementById("specComment").focus();
     return;
   }
-  let msg = `Hola! 👋 Quiero hacer un pedido especial en POKIDOKI-3D.\n\n`;
+  let msg = `Hola! 👋 Quiero hacer un pedido especial en PrintLab.\n\n`;
   if(name) msg += `Nombre: ${name}\n`;
   msg += `Idea / sugerencia: ${comment}`;
   openWhatsApp(msg);
@@ -570,49 +572,86 @@ document.getElementById("sendSpecial").addEventListener("click", ()=>{
    el dueño agrega/edita/borra algo desde admin.html.
 ====================================================== */
 const sectionsWrap = document.getElementById("sections");
+const filterBar = document.getElementById("filterBar");
+const especialesChip = document.querySelector('.chip[data-filter="especiales"]');
 let currentFilter = "todos";
+let allProducts = null;   // null = todavía no llegó nada de Firestore
+let categoriesLoaded = false;
 
 sectionsWrap.innerHTML = '<p class="state-msg">Cargando catálogo…</p>';
 
+db.collection("categories").orderBy("createdAt", "asc").onSnapshot(
+  snap=>{
+    CATEGORIES = [];
+    snap.forEach(doc => CATEGORIES.push({ id: doc.id, ...doc.data() }));
+    categoriesLoaded = true;
+    renderFilterChips();
+    renderCatalog();
+  },
+  err=> console.error("Error cargando categorías:", err)
+);
+
 db.collection("products").orderBy("createdAt", "desc").onSnapshot(
-  renderCatalog,
-  (err)=>{
+  snap=>{
+    allProducts = [];
+    snap.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
+    renderCatalog();
+  },
+  err=>{
     console.error(err);
     sectionsWrap.innerHTML = '<p class="state-msg">No se pudo cargar el catálogo. Probá de nuevo en un momento.</p>';
   }
 );
 
-function renderCatalog(snapshot){
-  const products = [];
-  snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+function renderFilterChips(){
+  // saca los chips de categoría viejos (deja "Todos" y "Pedidos Especiales")
+  filterBar.querySelectorAll('.chip[data-cat-chip]').forEach(el => el.remove());
+
+  CATEGORIES.forEach(cat=>{
+    const btn = document.createElement("button");
+    btn.className = "chip";
+    btn.dataset.filter = cat.slug;
+    btn.dataset.catChip = "1";
+    btn.textContent = cat.name;
+    btn.addEventListener("click", ()=> selectFilter(cat.slug, btn));
+    filterBar.insertBefore(btn, especialesChip);
+  });
+}
+
+function renderCatalog(){
+  if(allProducts === null || !categoriesLoaded) return; // esperando datos
 
   sectionsWrap.innerHTML = "";
 
-  if(products.length === 0){
+  if(CATEGORIES.length === 0){
+    sectionsWrap.innerHTML = '<p class="state-msg">Todavía no hay categorías creadas. Entrá a admin.html para crear la primera.</p>';
+    return;
+  }
+  if(allProducts.length === 0){
     sectionsWrap.innerHTML = '<p class="state-msg">Todavía no hay productos cargados. ¡Volvé pronto!</p>';
     return;
   }
 
   CATEGORIES.forEach(cat=>{
-    const items = products.filter(p => p.category === cat.key);
+    const items = allProducts.filter(p => p.category === cat.slug);
     if(!items.length) return;
 
     const section = document.createElement("section");
     section.className = "category";
-    section.id = cat.key;
-    section.dataset.cat = cat.key;
+    section.id = cat.slug;
+    section.dataset.cat = cat.slug;
 
     section.innerHTML = `
       <div class="section-head">
-        <h2>${cat.label}</h2>
-        <span>${cat.note}</span>
+        <h2>${cat.name}</h2>
+        <span>${cat.note || ""}</span>
       </div>
       <div class="grid">
         ${items.map(p => `
-          <article class="card" data-cat="${cat.key}">
+          <article class="card" data-cat="${cat.slug}">
             <div class="card-media">
               <span class="badge">3D PRINT</span>
-              ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}">` : ICONS[cat.key]}
+              ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}">` : (ICONS[cat.slug] || DEFAULT_ICON)}
             </div>
             <div class="card-body">
               <h3>${p.name}</h3>
@@ -657,24 +696,24 @@ function applyFilter(filter){
   });
 }
 
-document.querySelectorAll(".chip").forEach(chip=>{
-  chip.addEventListener("click", ()=>{
-    document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
-    chip.classList.add("active");
-    const filter = chip.dataset.filter;
+function selectFilter(filter, chipEl){
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+  chipEl.classList.add("active");
+  applyFilter(filter);
+  const target = document.getElementById(filter);
+  if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
+}
 
-    if(filter === "especiales"){
-      document.getElementById("especiales").scrollIntoView({behavior:"smooth", block:"start"});
-      return;
-    }
-
-    applyFilter(filter);
-
-    if(filter !== "todos"){
-      const target = document.getElementById(filter);
-      if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
-    }
-  });
+// chips fijos: "Todos" y "Pedidos Especiales"
+document.querySelector('.chip[data-filter="todos"]').addEventListener("click", function(){
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+  this.classList.add("active");
+  applyFilter("todos");
+});
+especialesChip.addEventListener("click", function(){
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+  this.classList.add("active");
+  document.getElementById("especiales").scrollIntoView({behavior:"smooth", block:"start"});
 });
 </script>
 </body>
