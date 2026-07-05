@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRINTLAB · Panel de administración</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js?v=3"></script>
+<style>
+  :root{
+    --bg:#14161b; --bg-alt:#1b1e24; --surface:#23272f;
+    --accent:#ff6a2c; --accent-2:#33e0c3;
+    --text:#edebe4; --text-mute:#8b909b; --line:rgba(255,255,255,0.08);
+    --radius:14px;
+    --font-display:'Chakra Petch', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+    --danger:#ff5a5a;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--text); font-family:var(--font-body);
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  button{ font-family:inherit; cursor:pointer; }
+  input, textarea, select{ font-family:inherit; }
+  a{ color:var(--accent-2); }
+
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px clamp(16px,4vw,40px); border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:#14161bee; backdrop-filter:blur(10px); z-index:10;
+  }
+  .logo{ font-family:var(--font-display); font-weight:700; font-size:1.1rem; display:flex; align-items:center; gap:10px;}
+  .logo .dot{ width:9px; height:9px; background:var(--accent); border-radius:2px; }
+  .logo small{ font-family:var(--font-mono); font-weight:400; color:var(--text-mute); font-size:0.7rem; }
+
+  main{ max-width:960px; margin:0 auto; padding:clamp(20px,4vw,50px) clamp(16px,4vw,40px) 80px; }
+
+  /* ---------- LOGIN ---------- */
+  #loginScreen{
+    min-height:80vh; display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .login-card{
+    width:100%; max-width:360px; background:var(--bg-alt); border:1px solid var(--line);
+    border-radius:var(--radius); padding:32px 28px;
+  }
+  .login-card h1{ font-family:var(--font-display); font-size:1.3rem; margin-bottom:6px; }
+  .login-card p{ color:var(--text-mute); font-size:0.85rem; margin-bottom:22px; }
+
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block; font-family:var(--font-mono); font-size:0.7rem; color:var(--text-mute);
+    margin-bottom:6px; letter-spacing:0.4px;
+  }
+  .field input, .field textarea, .field select{
+    width:100%; background:var(--bg); border:1px solid var(--line); border-radius:9px;
+    color:var(--text); font-size:0.9rem; padding:11px 13px;
+  }
+  .field textarea{ resize:vertical; min-height:80px; }
+  .field input:focus, .field textarea:focus, .field select:focus{ outline:none; border-color:var(--accent-2); }
+
+  .btn{
+    font-family:var(--font-mono); font-size:0.85rem; font-weight:500;
+    padding:12px 20px; border-radius:9px; border:1px solid transparent;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-primary{ background:var(--accent); color:#14161b; width:100%; }
+  .btn-primary:hover{ opacity:0.9; }
+  .btn-ghost{ border-color:var(--line); color:var(--text); background:transparent; }
+  .btn-ghost:hover{ border-color:var(--accent-2); color:var(--accent-2); }
+  .btn-danger{ border-color:var(--danger); color:var(--danger); background:transparent; padding:9px 14px; font-size:0.78rem; }
+  .btn-danger:hover{ background:var(--danger); color:#14161b; }
+  .btn-small{ padding:9px 14px; font-size:0.78rem; }
+
+  #errorMsg{ color:var(--danger); font-family:var(--font-mono); font-size:0.78rem; margin-top:12px; min-height:16px; }
+
+  /* ---------- DASHBOARD ---------- */
+  #dashboard{ display:none; }
+  .dash-head{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;
+    margin-bottom:26px;
+  }
+  .dash-head h1{ font-family:var(--font-display); font-size:1.5rem; }
+  .dash-head span{ color:var(--text-mute); font-family:var(--font-mono); font-size:0.8rem; }
+
+  .panel{
+    background:var(--bg-alt); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px clamp(16px,3vw,28px); margin-bottom:26px;
+  }
+  .panel h2{ font-family:var(--font-display); font-size:1.05rem; margin-bottom:16px; }
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; }
+  .form-grid .full{ grid-column:1 / -1; }
+  .form-actions{ display:flex; gap:10px; margin-top:8px; }
+  .form-actions .btn{ flex:1; }
+  .hint{ font-family:var(--font-mono); font-size:0.7rem; color:var(--text-mute); margin-top:4px; }
+
+  .photo-field{ display:flex; gap:14px; align-items:center; }
+  .photo-preview{
+    width:72px; height:72px; border-radius:10px; background:var(--surface);
+    border:1px dashed var(--line); display:flex; align-items:center; justify-content:center;
+    overflow:hidden; flex:none; position:relative;
+  }
+  .photo-preview img{ width:100%; height:100%; object-fit:cover; }
+  .photo-preview svg{ width:24px; height:24px; color:var(--text-mute); }
+  .photo-actions{ display:flex; flex-direction:column; gap:8px; flex:1; }
+  .photo-actions input[type="file"]{ display:none; }
+  .photo-status{ font-family:var(--font-mono); font-size:0.72rem; color:var(--text-mute); }
+  .photo-status.uploading{ color:var(--accent-2); }
+  .photo-status.error{ color:var(--danger); }
+
+  .product-row{
+    display:flex; gap:14px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line);
+  }
+  .product-row:last-child{ border-bottom:none; }
+  .product-thumb{
+    width:52px; height:52px; border-radius:8px; background:var(--surface);
+    display:flex; align-items:center; justify-content:center; overflow:hidden; flex:none;
+  }
+  .product-thumb img{ width:100%; height:100%; object-fit:cover; }
+  .product-thumb svg{ width:22px; height:22px; color:var(--accent); }
+  .product-info{ flex:1; min-width:0; }
+  .product-info h3{ font-size:0.95rem; font-weight:600; }
+  .product-info span{ font-family:var(--font-mono); font-size:0.75rem; color:var(--text-mute); display:block; margin-top:2px; }
+  .product-actions{ display:flex; gap:8px; flex:none; }
+
+  .state-msg{ font-family:var(--font-mono); font-size:0.85rem; color:var(--text-mute); padding:20px 0; text-align:center; }
+
+  @media (max-width:600px){
+    .form-grid{ grid-template-columns:1fr; }
+    .product-row{ flex-wrap:wrap; }
+    .product-actions{ width:100%; }
+    .product-actions .btn{ flex:1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="dot"></span>PRINTLAB<small>&nbsp;ADMIN</small></div>
+  <button class="btn btn-ghost btn-small" id="logoutBtn" style="display:none;">Cerrar sesión</button>
+</header>
+
+<main>
+  <!-- LOGIN -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <h1>Ingresar</h1>
+      <p>Acceso solo para el dueño del catálogo.</p>
+      <div class="field">
+        <label for="email">Correo</label>
+        <input type="email" id="email" autocomplete="username" placeholder="tu@correo.com">
+      </div>
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary" id="loginBtn">Entrar</button>
+      <div id="errorMsg"></div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+    <div class="dash-head">
+      <div>
+        <h1>Tus productos</h1>
+        <span id="countLabel">0 productos</span>
+      </div>
+      <button class="btn btn-primary btn-small" id="newProductBtn" style="width:auto;">+ Agregar producto</button>
+    </div>
+
+    <!-- FORM -->
+    <div class="panel" id="formPanel" style="display:none;">
+      <h2 id="formTitle">Nuevo producto</h2>
+      <div class="form-grid">
+        <div class="field full">
+          <label for="pName">Nombre del producto</label>
+          <input type="text" id="pName" placeholder='Ej: Máscara "Kitsune Sombra"'>
+        </div>
+        <div class="field">
+          <label for="pCategory">Categoría</label>
+          <select id="pCategory">
+            <option value="mascaras">Máscaras</option>
+            <option value="llaveros">Llaveros</option>
+            <option value="figuras">Figuras</option>
+            <option value="armas">Réplicas de utilería</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pPrice">Precio (con moneda)</label>
+          <input type="text" id="pPrice" placeholder="Bs. 90">
+        </div>
+        <div class="field full">
+          <label for="pDesc">Descripción</label>
+          <textarea id="pDesc" placeholder="Contale al cliente qué es, de qué está hecho, para qué sirve..."></textarea>
+        </div>
+        <div class="field">
+          <label for="pMeta">Detalle técnico (opcional)</label>
+          <input type="text" id="pMeta" placeholder="PLA+ · 6h impresión">
+        </div>
+        <div class="field full">
+          <label>Foto o GIF del producto (opcional)</label>
+          <div class="photo-field">
+            <div class="photo-preview" id="photoPreview">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-4 4-3-3-6 6"/></svg>
+            </div>
+            <div class="photo-actions">
+              <input type="file" id="pImageFile" accept="image/*" capture="environment">
+              <button type="button" class="btn btn-ghost btn-small" id="pickPhotoBtn" style="width:auto;">📷 Subir foto o GIF desde el celular</button>
+              <span class="photo-status" id="photoStatus">Sin foto — se usará un ícono genérico.</span>
+            </div>
+          </div>
+          <input type="hidden" id="pImage" value="">
+        </div>
+      </div>
+      <p class="hint">Si no subís foto, se muestra un ícono genérico de la categoría. Podés subir imágenes normales (JPG, PNG) o GIF animados.</p>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="saveProductBtn">Guardar producto</button>
+        <button class="btn btn-ghost" id="cancelFormBtn">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- LIST -->
+    <div class="panel">
+      <h2>Catálogo actual</h2>
+      <div id="productList"><p class="state-msg">Cargando…</p></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const ICONS = {
+  mascaras: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 26c0-12 10-20 24-20s24 8 24 20c0 14-8 24-24 30-16-6-24-16-24-30Z"/><ellipse cx="22" cy="26" rx="5" ry="4"/><ellipse cx="42" cy="26" rx="5" ry="4"/><path d="M26 40c2 2 10 2 12 0"/></svg>`,
+  llaveros: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="22" cy="22" r="12"/><circle cx="22" cy="22" r="4"/><path d="M31 31 54 54M42 42l6-6M48 48l6-6"/></svg>`,
+  figuras: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="12" r="7"/><path d="M32 19v20M20 30l12-6 12 6M20 56l12-17 12 17"/></svg>`,
+  armas: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 40 44 12l4 6-8 8 12 12-8 8-12-12-8 8-6-6Z"/><path d="M12 44l-4 8 8-4"/></svg>`
+};
+const CATEGORY_LABEL = { mascaras:"Máscaras", llaveros:"Llaveros", figuras:"Figuras", armas:"Réplicas de utilería" };
+
+const photoPreview = document.getElementById("photoPreview");
+const photoStatus = document.getElementById("photoStatus");
+const pImageFile = document.getElementById("pImageFile");
+const pImage = document.getElementById("pImage");
+const DEFAULT_PREVIEW_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-4 4-3-3-6 6"/></svg>`;
+
+document.getElementById("pickPhotoBtn").addEventListener("click", ()=> pImageFile.click());
+
+pImageFile.addEventListener("change", async ()=>{
+  const file = pImageFile.files[0];
+  if(!file) return;
+
+  photoStatus.textContent = "Subiendo foto...";
+  photoStatus.className = "photo-status uploading";
+
+  try{
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+
+    if(!res.ok || !data.secure_url){
+      throw new Error(data.error?.message || "Error al subir");
+    }
+
+    pImage.value = data.secure_url;
+    photoPreview.innerHTML = `<img src="${data.secure_url}" alt="">`;
+    photoStatus.textContent = "Foto subida ✓";
+    photoStatus.className = "photo-status";
+  } catch(err){
+    console.error(err);
+    photoStatus.textContent = "No se pudo subir la foto. Revisá tu conexión e intentá de nuevo.";
+    photoStatus.className = "photo-status error";
+  }
+});
+
+function resetPhotoField(existingUrl){
+  pImage.value = existingUrl || "";
+  pImageFile.value = "";
+  if(existingUrl){
+    photoPreview.innerHTML = `<img src="${existingUrl}" alt="">`;
+    photoStatus.textContent = "Foto actual del producto.";
+    photoStatus.className = "photo-status";
+  } else {
+    photoPreview.innerHTML = DEFAULT_PREVIEW_ICON;
+    photoStatus.textContent = "Sin foto — se usará un ícono genérico.";
+    photoStatus.className = "photo-status";
+  }
+}
+
+const loginScreen = document.getElementById("loginScreen");
+const dashboard = document.getElementById("dashboard");
+const logoutBtn = document.getElementById("logoutBtn");
+const errorMsg = document.getElementById("errorMsg");
+
+let editingId = null;
+let unsubscribe = null;
+
+/* ---------- AUTH ---------- */
+document.getElementById("loginBtn").addEventListener("click", ()=>{
+  errorMsg.textContent = "";
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  auth.signInWithEmailAndPassword(email, password).catch(err=>{
+    errorMsg.textContent = "No se pudo entrar: correo o contraseña incorrectos.";
+  });
+});
+
+document.getElementById("password").addEventListener("keydown", (e)=>{
+  if(e.key === "Enter") document.getElementById("loginBtn").click();
+});
+
+logoutBtn.addEventListener("click", ()=> auth.signOut());
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    loginScreen.style.display = "none";
+    dashboard.style.display = "block";
+    logoutBtn.style.display = "inline-flex";
+    listenProducts();
+  } else {
+    loginScreen.style.display = "flex";
+    dashboard.style.display = "none";
+    logoutBtn.style.display = "none";
+    if(unsubscribe) unsubscribe();
+  }
+});
+
+/* ---------- FORM ---------- */
+const formPanel = document.getElementById("formPanel");
+const formTitle = document.getElementById("formTitle");
+
+document.getElementById("newProductBtn").addEventListener("click", ()=>{
+  openForm();
+});
+document.getElementById("cancelFormBtn").addEventListener("click", closeForm);
+
+function openForm(product){
+  editingId = product ? product.id : null;
+  formTitle.textContent = product ? "Editar producto" : "Nuevo producto";
+  document.getElementById("pName").value = product?.name || "";
+  document.getElementById("pCategory").value = product?.category || "mascaras";
+  document.getElementById("pPrice").value = product?.price || "";
+  document.getElementById("pDesc").value = product?.description || "";
+  document.getElementById("pMeta").value = product?.meta || "";
+  resetPhotoField(product?.imageUrl || "");
+  formPanel.style.display = "block";
+  formPanel.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+function closeForm(){
+  editingId = null;
+  resetPhotoField("");
+  formPanel.style.display = "none";
+}
+
+document.getElementById("saveProductBtn").addEventListener("click", async ()=>{
+  const name = document.getElementById("pName").value.trim();
+  const price = document.getElementById("pPrice").value.trim();
+  if(!name || !price){
+    alert("Poné al menos el nombre y el precio del producto.");
+    return;
+  }
+  if(photoStatus.classList.contains("uploading")){
+    alert("Esperá a que termine de subirse la foto antes de guardar.");
+    return;
+  }
+  const data = {
+    name,
+    category: document.getElementById("pCategory").value,
+    price,
+    description: document.getElementById("pDesc").value.trim(),
+    meta: document.getElementById("pMeta").value.trim(),
+    imageUrl: document.getElementById("pImage").value.trim(),
+  };
+
+  const btn = document.getElementById("saveProductBtn");
+  btn.disabled = true; btn.textContent = "Guardando...";
+  try{
+    if(editingId){
+      await db.collection("products").doc(editingId).update(data);
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection("products").add(data);
+    }
+    closeForm();
+  } catch(err){
+    alert("Hubo un error al guardar. Intentá de nuevo.");
+    console.error(err);
+  } finally {
+    btn.disabled = false; btn.textContent = "Guardar producto";
+  }
+});
+
+/* ---------- LIST ---------- */
+const productList = document.getElementById("productList");
+const countLabel = document.getElementById("countLabel");
+
+function listenProducts(){
+  unsubscribe = db.collection("products").orderBy("createdAt","desc").onSnapshot(snap=>{
+    const items = [];
+    snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+    renderList(items);
+  }, err=>{
+    console.error(err);
+    productList.innerHTML = '<p class="state-msg">No se pudo cargar el catálogo.</p>';
+  });
+}
+
+function renderList(items){
+  countLabel.textContent = `${items.length} producto${items.length===1?"":"s"}`;
+
+  if(items.length === 0){
+    productList.innerHTML = '<p class="state-msg">Todavía no agregaste productos.</p>';
+    return;
+  }
+
+  productList.innerHTML = items.map(p => `
+    <div class="product-row">
+      <div class="product-thumb">
+        ${p.imageUrl ? `<img src="${p.imageUrl}" alt="">` : (ICONS[p.category] || "")}
+      </div>
+      <div class="product-info">
+        <h3>${p.name}</h3>
+        <span>${CATEGORY_LABEL[p.category] || p.category} · ${p.price}</span>
+      </div>
+      <div class="product-actions">
+        <button class="btn btn-ghost btn-small" data-edit="${p.id}">Editar</button>
+        <button class="btn btn-danger" data-delete="${p.id}">Eliminar</button>
+      </div>
+    </div>
+  `).join("");
+
+  productList.querySelectorAll("[data-edit]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const product = items.find(i => i.id === btn.dataset.edit);
+      openForm(product);
+    });
+  });
+  productList.querySelectorAll("[data-delete]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      if(!confirm("¿Eliminar este producto? No se puede deshacer.")) return;
+      await db.collection("products").doc(btn.dataset.delete).delete();
+    });
+  });
+}
+</script>
+</body>
+</html>
