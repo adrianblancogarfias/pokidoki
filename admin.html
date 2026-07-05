@@ -2,460 +2,680 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRINTLAB · Panel de administración</title>
-<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>PRINTLAB · Catálogo de Impresión 3D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Luckiest+Guy&family=Yuji+Syuku&display=swap" rel="stylesheet">
+<!-- Firebase (lee el catálogo cargado desde el panel de administración) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js?v=2"></script>
 <style>
+  /* ============ TOKENS ============ */
   :root{
-    --bg:#14161b; --bg-alt:#1b1e24; --surface:#23272f;
-    --accent:#ff6a2c; --accent-2:#33e0c3;
-    --text:#edebe4; --text-mute:#8b909b; --line:rgba(255,255,255,0.08);
+    --bg:#14161b;
+    --bg-alt:#1b1e24;
+    --surface:#23272f;
+    --accent:#FC6C85;      /* filamento PLA naranja */
+    --accent-soft:#ff6a2c33;
+    --accent-2:#33e0c3;    /* acento cian */
+    --text:#edebe4;
+    --text-mute:#8b909b;
+    --line:rgba(255,255,255,0.08);
     --radius:14px;
     --font-display:'Chakra Petch', sans-serif;
     --font-body:'Inter', sans-serif;
     --font-mono:'JetBrains Mono', monospace;
-    --danger:#ff5a5a;
   }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  body{
-    background:var(--bg); color:var(--text); font-family:var(--font-body);
-    min-height:100vh; -webkit-font-smoothing:antialiased;
-  }
-  button{ font-family:inherit; cursor:pointer; }
-  input, textarea, select{ font-family:inherit; }
-  a{ color:var(--accent-2); }
 
-  header{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:18px clamp(16px,4vw,40px); border-bottom:1px solid var(--line);
-    position:sticky; top:0; background:#14161bee; backdrop-filter:blur(10px); z-index:10;
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.5;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
   }
-  .logo{ font-family:var(--font-display); font-weight:700; font-size:1.1rem; display:flex; align-items:center; gap:10px;}
-  .logo .dot{ width:9px; height:9px; background:var(--accent); border-radius:2px; }
+  img,svg{display:block; max-width:100%;}
+  button{font-family:inherit; cursor:pointer;}
+  a{color:inherit; text-decoration:none;}
+
+  /* ============ ANIMATED BACKGROUND ============ */
+  .bg-layer{
+    position:fixed; inset:0; z-index:-2; pointer-events:none;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, #ff6a2c14, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 100% 100%, #33e0c312, transparent 60%),
+      var(--bg);
+  }
+  .bg-grid{
+    position:fixed; inset:-50px; z-index:-1; pointer-events:none; opacity:0.35;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 42px 42px;
+    animation: gridDrift 22s linear infinite;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 75%);
+  }
+  @keyframes gridDrift{
+    0%{ background-position: 0 0, 0 0; }
+    100%{ background-position: 42px 84px, 42px 84px; }
+  }
+  .bg-strand{
+    position:fixed; z-index:-1; pointer-events:none; opacity:0.5;
+  }
+
+  /* ============ NAV ============ */
+  header{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter:blur(10px);
+    background:#14161bcc;
+    border-bottom:1px solid var(--line);
+  }
+  .nav-top{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px clamp(16px,4vw,40px);
+  }
+  .logo{
+    font-family:var(--font-display); font-weight:700; letter-spacing:0.5px;
+    font-size:1.15rem; display:flex; align-items:center; gap:10px;
+  }
+  .logo .dot{ width:9px; height:9px; border-radius:2px; background:var(--accent);
+    box-shadow:0 0 12px 2px var(--accent-soft); animation:pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
   .logo small{ font-family:var(--font-mono); font-weight:400; color:var(--text-mute); font-size:0.7rem; }
 
-  main{ max-width:960px; margin:0 auto; padding:clamp(20px,4vw,50px) clamp(16px,4vw,40px) 80px; }
+  .nav-support{
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-size:0.78rem; color:var(--text-mute);
+    border:1px solid var(--line); padding:8px 14px; border-radius:999px;
+    transition:border-color .2s, color .2s;
+  }
+  .nav-support:hover{ border-color:var(--accent-2); color:var(--accent-2); }
 
-  /* ---------- LOGIN ---------- */
-  #loginScreen{
-    min-height:80vh; display:flex; align-items:center; justify-content:center;
-    padding:20px;
+  .filter-bar{
+    display:flex; gap:8px; overflow-x:auto; padding:0 clamp(16px,4vw,40px) 14px;
+    scrollbar-width:none;
   }
-  .login-card{
-    width:100%; max-width:360px; background:var(--bg-alt); border:1px solid var(--line);
-    border-radius:var(--radius); padding:32px 28px;
+  .filter-bar::-webkit-scrollbar{ display:none; }
+  .chip{
+    flex:none;
+    font-family:var(--font-mono); font-size:0.78rem; letter-spacing:0.3px;
+    color:var(--text-mute); background:var(--bg-alt);
+    border:1px solid var(--line); padding:9px 16px; border-radius:999px;
+    white-space:nowrap; transition:all .2s;
   }
-  .login-card h1{ font-family:var(--font-display); font-size:1.3rem; margin-bottom:6px; }
-  .login-card p{ color:var(--text-mute); font-size:0.85rem; margin-bottom:22px; }
+  .chip:hover{ color:var(--text); border-color:var(--accent-soft); }
+  .chip.active{ color:#14161b; background:var(--accent); border-color:var(--accent); font-weight:500; }
 
-  .field{ margin-bottom:14px; }
-  .field label{
-    display:block; font-family:var(--font-mono); font-size:0.7rem; color:var(--text-mute);
-    margin-bottom:6px; letter-spacing:0.4px;
+  /* ============ HERO ============ */
+  .hero{
+    padding:clamp(50px,8vw,90px) clamp(16px,4vw,40px) clamp(30px,5vw,50px);
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:40px; align-items:center;
+    max-width:1240px; margin:0 auto;
   }
-  .field input, .field textarea, .field select{
-    width:100%; background:var(--bg); border:1px solid var(--line); border-radius:9px;
-    color:var(--text); font-size:0.9rem; padding:11px 13px;
+  .hero-eyebrow{
+    font-family:var(--font-mono); color:var(--accent-2); font-size:0.8rem;
+    letter-spacing:2px; text-transform:uppercase; margin-bottom:14px; display:block;
   }
-  .field textarea{ resize:vertical; min-height:80px; }
-  .field input:focus, .field textarea:focus, .field select:focus{ outline:none; border-color:var(--accent-2); }
-
+  .hero h1{
+    font-family:var(--font-display); font-weight:700;
+    font-size:clamp(2.1rem, 5vw, 3.4rem); line-height:1.08; letter-spacing:-0.5px;
+  }
+  .hero h1 .accent-word{ color:var(--accent); }
+  .hero p{
+    margin-top:18px; color:var(--text-mute); font-size:1.02rem; max-width:46ch;
+  }
+  .hero-actions{ display:flex; gap:12px; margin-top:28px; flex-wrap:wrap; }
   .btn{
     font-family:var(--font-mono); font-size:0.85rem; font-weight:500;
-    padding:12px 20px; border-radius:9px; border:1px solid transparent;
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:13px 22px; border-radius:10px; border:1px solid transparent;
+    display:inline-flex; align-items:center; gap:8px; transition:transform .15s, opacity .15s;
   }
-  .btn-primary{ background:var(--accent); color:#14161b; width:100%; }
+  .btn:active{ transform:scale(0.97); }
+  .btn-primary{ background:var(--accent); color:#14161b; }
   .btn-primary:hover{ opacity:0.9; }
-  .btn-ghost{ border-color:var(--line); color:var(--text); background:transparent; }
+  .btn-ghost{ border-color:var(--line); color:var(--text); }
   .btn-ghost:hover{ border-color:var(--accent-2); color:var(--accent-2); }
-  .btn-danger{ border-color:var(--danger); color:var(--danger); background:transparent; padding:9px 14px; font-size:0.78rem; }
-  .btn-danger:hover{ background:var(--danger); color:#14161b; }
-  .btn-small{ padding:9px 14px; font-size:0.78rem; }
 
-  #errorMsg{ color:var(--danger); font-family:var(--font-mono); font-size:0.78rem; margin-top:12px; min-height:16px; }
-
-  /* ---------- DASHBOARD ---------- */
-  #dashboard{ display:none; }
-  .dash-head{
-    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;
-    margin-bottom:26px;
+  .hero-visual{
+    position:relative; display:flex; align-items:center; justify-content:center;
+    max-width:380px; margin:0 auto;
   }
-  .dash-head h1{ font-family:var(--font-display); font-size:1.5rem; }
-  .dash-head span{ color:var(--text-mute); font-family:var(--font-mono); font-size:0.8rem; }
 
-  .panel{
+  /* ============ LOGO POKIDOKI 3D (flotando, sin fondo) ============ */
+  /* Estas variables son EXCLUSIVAS del logo — no tocan el naranja
+     del resto del sitio (ese es --accent, más arriba). */
+  :root{
+    --logo-text-color:#ffffff;   /* letras del logo: PokiDoki, ポキドキ y 3D */
+    --logo-accent-color:#ff2e46; /* rojo sandía: puntitos, subrayado y trazos rojos del logo */
+  }
+  .brand-card{
+    position:relative;
+    padding:clamp(10px,3vw,24px);
+    transform:rotate(-2deg);
+    cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent;
+  }
+  .brand-lockup{ position:relative; display:flex; flex-direction:column; align-items:center; }
+
+  .brand-wordmark{
+    font-family:'Luckiest Guy', cursive;
+    font-size:clamp(1.9rem, 6vw, 2.9rem);
+    color:var(--logo-text-color);
+    letter-spacing:1px; line-height:1; display:flex;
+    filter:drop-shadow(0 0 18px #ff2e4640);
+  }
+  .brand-wordmark .ch{ display:inline-block; opacity:0; transform:translateY(16px) rotate(-8deg) scale(0.7); }
+  .brand-card.play .brand-wordmark .ch{
+    animation:brandStamp 0.5s cubic-bezier(.34,1.56,.64,1) forwards;
+    animation-delay:calc(var(--i) * 55ms);
+  }
+  @keyframes brandStamp{ to{ opacity:1; transform:translateY(0) rotate(0) scale(1); } }
+
+  .brand-jp-row{ display:flex; align-items:center; gap:8px; margin-top:4px; opacity:0; transform:translateY(8px); }
+  .brand-card.play .brand-jp-row{ animation:brandFadeUp 0.55s ease-out forwards; animation-delay:0.58s; }
+  @keyframes brandFadeUp{ to{ opacity:1; transform:translateY(0); } }
+  .brand-jp-dot{ width:5px; height:5px; border-radius:50%; background:var(--logo-accent-color); flex:none; }
+  .brand-jp-text{
+    font-family:'Yuji Syuku', serif; font-size:clamp(0.75rem, 2vw, 1rem);
+    letter-spacing:5px; color:var(--logo-text-color); padding-left:5px;
+  }
+
+  .brand-3d{
+    font-family:'Luckiest Guy', cursive;
+    font-size:clamp(3.4rem, 12vw, 5.4rem);
+    color:var(--logo-text-color); line-height:0.9; margin-top:4px;
+    opacity:0; transform:scale(0.4);
+    filter:drop-shadow(0 0 24px #ff2e4650);
+  }
+  .brand-card.play .brand-3d{ animation:brandPop 0.55s cubic-bezier(.2,1.4,.4,1) forwards; animation-delay:0.9s; }
+  @keyframes brandPop{
+    0%{ opacity:0; transform:scale(0.4); }
+    60%{ opacity:1; transform:scale(1.12); }
+    100%{ opacity:1; transform:scale(1); }
+  }
+
+  .brand-swash{ width:clamp(140px,26vw,220px); height:22px; margin-top:2px; overflow:visible; }
+  .brand-swash path{ fill:none; stroke:var(--logo-accent-color); stroke-width:9; stroke-linecap:round; stroke-dasharray:1; stroke-dashoffset:1; }
+  .brand-card.play .brand-swash path{ animation:brandDraw 0.5s ease-out forwards; animation-delay:1.35s; }
+  @keyframes brandDraw{ to{ stroke-dashoffset:0; } }
+
+  .brand-accent{ position:absolute; width:70px; height:70px; top:2%; pointer-events:none; }
+  .brand-accent.left{ left:-10%; transform:scaleX(-1); }
+  .brand-accent.right{ right:-10%; }
+  .brand-accent path{ fill:none; stroke:var(--logo-accent-color); stroke-width:5; stroke-linecap:round; stroke-dasharray:1; stroke-dashoffset:1; opacity:0.9; }
+  .brand-card.play .brand-accent path{ animation:brandFlick 0.3s ease-out forwards; }
+  .brand-card.play .brand-accent path:nth-child(1){ animation-delay:1.5s; }
+  .brand-card.play .brand-accent path:nth-child(2){ animation-delay:1.57s; }
+  .brand-card.play .brand-accent path:nth-child(3){ animation-delay:1.64s; }
+  @keyframes brandFlick{ to{ stroke-dashoffset:0; } }
+
+  @media (max-width:640px){ .brand-accent{ display:none; } }
+  @media (prefers-reduced-motion: reduce){
+    .brand-card.play .ch, .brand-card.play .brand-jp-row, .brand-card.play .brand-3d,
+    .brand-card.play .brand-swash path, .brand-card.play .brand-accent path{
+      animation:none !important; opacity:1 !important; transform:none !important; stroke-dashoffset:0 !important;
+    }
+  }
+
+  /* ============ SECTIONS ============ */
+  section.category{
+    padding:10px clamp(16px,4vw,40px) 20px; max-width:1240px; margin:0 auto;
+  }
+  .section-head{
+    display:flex; align-items:baseline; gap:14px; margin:46px 0 22px;
+    border-bottom:1px solid var(--line); padding-bottom:14px;
+  }
+  .section-head h2{
+    font-family:var(--font-display); font-size:1.5rem; letter-spacing:0.5px;
+  }
+  .section-head span{
+    font-family:var(--font-mono); color:var(--text-mute); font-size:0.78rem;
+  }
+
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(255px,1fr)); gap:20px;
+  }
+  .state-msg{
+    font-family:var(--font-mono); font-size:0.85rem; color:var(--text-mute);
+    text-align:center; padding:40px 20px;
+  }
+
+  /* ============ CARD ============ */
+  .card{
     background:var(--bg-alt); border:1px solid var(--line); border-radius:var(--radius);
-    padding:22px clamp(16px,3vw,28px); margin-bottom:26px;
+    overflow:hidden; display:flex; flex-direction:column;
+    animation: printReveal 0.8s steps(7,end) both;
+    animation-delay: var(--reveal-delay, 0s);
   }
-  .panel h2{ font-family:var(--font-display); font-size:1.05rem; margin-bottom:16px; }
-  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; }
-  .form-grid .full{ grid-column:1 / -1; }
-  .form-actions{ display:flex; gap:10px; margin-top:8px; }
-  .form-actions .btn{ flex:1; }
-  .hint{ font-family:var(--font-mono); font-size:0.7rem; color:var(--text-mute); margin-top:4px; }
-
-  .photo-field{ display:flex; gap:14px; align-items:center; }
-  .photo-preview{
-    width:72px; height:72px; border-radius:10px; background:var(--surface);
-    border:1px dashed var(--line); display:flex; align-items:center; justify-content:center;
-    overflow:hidden; flex:none; position:relative;
+  @keyframes printReveal{
+    from{ clip-path: inset(0 0 100% 0); opacity:0; }
+    to{ clip-path: inset(0 0 0% 0); opacity:1; }
   }
-  .photo-preview img{ width:100%; height:100%; object-fit:cover; }
-  .photo-preview svg{ width:24px; height:24px; color:var(--text-mute); }
-  .photo-actions{ display:flex; flex-direction:column; gap:8px; flex:1; }
-  .photo-actions input[type="file"]{ display:none; }
-  .photo-status{ font-family:var(--font-mono); font-size:0.72rem; color:var(--text-mute); }
-  .photo-status.uploading{ color:var(--accent-2); }
-  .photo-status.error{ color:var(--danger); }
 
-  .product-row{
-    display:flex; gap:14px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line);
+  .card-media{
+    position:relative; aspect-ratio:4/3; background:
+      repeating-linear-gradient(180deg, #ffffff08 0 3px, transparent 3px 9px), var(--surface);
+    display:flex; align-items:center; justify-content:center;
   }
-  .product-row:last-child{ border-bottom:none; }
-  .product-thumb{
-    width:52px; height:52px; border-radius:8px; background:var(--surface);
-    display:flex; align-items:center; justify-content:center; overflow:hidden; flex:none;
+  .card-media svg{ width:46%; height:46%; color:var(--accent); }
+  .card-media img{ width:100%; height:100%; object-fit:cover; }
+  .card-media .badge{
+    position:absolute; top:10px; left:10px;
+    font-family:var(--font-mono); font-size:0.65rem; color:var(--accent-2);
+    border:1px solid var(--accent-2); border-radius:999px; padding:3px 9px;
   }
-  .product-thumb img{ width:100%; height:100%; object-fit:cover; }
-  .product-thumb svg{ width:22px; height:22px; color:var(--accent); }
-  .product-info{ flex:1; min-width:0; }
-  .product-info h3{ font-size:0.95rem; font-weight:600; }
-  .product-info span{ font-family:var(--font-mono); font-size:0.75rem; color:var(--text-mute); display:block; margin-top:2px; }
-  .product-actions{ display:flex; gap:8px; flex:none; }
 
-  .state-msg{ font-family:var(--font-mono); font-size:0.85rem; color:var(--text-mute); padding:20px 0; text-align:center; }
+  .card-body{ padding:18px 18px 20px; display:flex; flex-direction:column; gap:10px; flex:1; }
+  .card-body h3{ font-family:var(--font-display); font-size:1.08rem; font-weight:600; }
+  .card-body p{ color:var(--text-mute); font-size:0.87rem; flex:1; }
+  .card-meta{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--font-mono); font-size:0.78rem; color:var(--text-mute);
+    border-top:1px dashed var(--line); padding-top:12px;
+  }
+  .price{ color:var(--text); font-size:0.95rem; font-weight:500; }
+  .order-btn{
+    margin-top:6px; width:100%; justify-content:center;
+    background:transparent; border:1px solid var(--accent); color:var(--accent);
+    padding:11px; border-radius:9px; font-family:var(--font-mono); font-size:0.82rem;
+    display:flex; align-items:center; gap:8px; transition:background .2s, color .2s;
+  }
+  .order-btn:hover{ background:var(--accent); color:#14161b; }
+  .order-btn svg{ width:16px; height:16px; }
 
-  @media (max-width:600px){
-    .form-grid{ grid-template-columns:1fr; }
-    .product-row{ flex-wrap:wrap; }
-    .product-actions{ width:100%; }
-    .product-actions .btn{ flex:1; }
+  /* ============ ESPECIALES ============ */
+  .special{
+    margin:70px auto 40px; max-width:1240px; padding:0 clamp(16px,4vw,40px);
+  }
+  .special-box{
+    background:linear-gradient(160deg, var(--bg-alt), var(--surface));
+    border:1px solid var(--line); border-radius:18px;
+    padding:clamp(24px,4vw,42px); display:grid; grid-template-columns:1fr 1fr; gap:36px;
+  }
+  .special-box h2{
+    font-family:var(--font-display); font-size:1.6rem; margin-bottom:10px;
+  }
+  .special-box > div:first-child p{ color:var(--text-mute); font-size:0.93rem; max-width:42ch; }
+  .special-tags{ display:flex; gap:8px; flex-wrap:wrap; margin-top:18px; }
+  .special-tags span{
+    font-family:var(--font-mono); font-size:0.72rem; color:var(--accent-2);
+    border:1px solid var(--accent-2); border-radius:999px; padding:4px 10px;
+  }
+  .field label{
+    display:block; font-family:var(--font-mono); font-size:0.72rem; color:var(--text-mute);
+    margin-bottom:6px; letter-spacing:0.4px;
+  }
+  .field{ margin-bottom:14px; }
+  .field input, .field textarea{
+    width:100%; background:var(--bg); border:1px solid var(--line); border-radius:9px;
+    color:var(--text); font-family:var(--font-body); font-size:0.9rem; padding:11px 13px;
+    resize:vertical;
+  }
+  .field textarea{ min-height:96px; }
+  .field input:focus, .field textarea:focus{ outline:none; border-color:var(--accent-2); }
+  .special-box .btn-primary{ width:100%; justify-content:center; margin-top:4px; }
+
+  /* ============ FOOTER ============ */
+  footer{
+    border-top:1px solid var(--line); margin-top:60px;
+    padding:30px clamp(16px,4vw,40px) 100px;
+    display:flex; flex-wrap:wrap; gap:14px; justify-content:space-between; align-items:center;
+    font-family:var(--font-mono); font-size:0.76rem; color:var(--text-mute);
+  }
+
+  /* ============ FLOATING WHATSAPP SUPPORT ============ */
+  .support-fab{
+    position:fixed; right:18px; bottom:18px; z-index:60;
+    width:58px; height:58px; border-radius:50%;
+    background:#25D366; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 22px #25d36655; animation:fabBounce 3.2s ease-in-out infinite;
+  }
+  .support-fab svg{ width:28px; height:28px; fill:#0c1410; }
+  @keyframes fabBounce{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:860px){
+    .hero{ grid-template-columns:1fr; text-align:center; }
+    .hero p{ margin-left:auto; margin-right:auto; }
+    .hero-actions{ justify-content:center; }
+    .hero-visual{ order:-1; max-width:260px; }
+    .special-box{ grid-template-columns:1fr; }
+  }
+  @media (max-width:480px){
+    .grid{ grid-template-columns:1fr 1fr; gap:12px; }
+    .card-body h3{ font-size:0.95rem; }
+    .card-body p{ font-size:0.8rem; }
+    .nav-support span.label{ display:none; }
+  }
+  @media (max-width:360px){
+    .grid{ grid-template-columns:1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.2s !important; }
+    .bg-grid{ animation:none; }
+    .card{ animation:none; clip-path:inset(0); opacity:1; }
   }
 </style>
 </head>
 <body>
 
+<div class="bg-layer"></div>
+<div class="bg-grid"></div>
+
 <header>
-  <div class="logo"><span class="dot"></span>PRINTLAB<small>&nbsp;ADMIN</small></div>
-  <button class="btn btn-ghost btn-small" id="logoutBtn" style="display:none;">Cerrar sesión</button>
+  <div class="nav-top">
+    <div class="logo"><span class="dot"></span>POKIDOKI-3D<small>&nbsp;3D STUDIO</small></div>
+    <a class="nav-support" id="navSupport" href="#" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.9.5 3.7 1.5 5.3L2 22l4.9-1.4C8.4 21.5 10.2 22 12 22c5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3C4.4 15 4 13.5 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z"/></svg>
+      <span class="label">Soporte por WhatsApp</span>
+    </a>
+  </div>
+  <nav class="filter-bar" id="filterBar">
+    <button class="chip active" data-filter="todos">Todos</button>
+    <button class="chip" data-filter="mascaras">Máscaras</button>
+    <button class="chip" data-filter="llaveros">Llaveros</button>
+    <button class="chip" data-filter="figuras">Figuras</button>
+    <button class="chip" data-filter="armas">Armas</button>
+    <button class="chip" data-filter="especiales">Pedidos Especiales</button>
+  </nav>
 </header>
 
 <main>
-  <!-- LOGIN -->
-  <div id="loginScreen">
-    <div class="login-card">
-      <h1>Ingresar</h1>
-      <p>Acceso solo para el dueño del catálogo.</p>
-      <div class="field">
-        <label for="email">Correo</label>
-        <input type="email" id="email" autocomplete="username" placeholder="tu@correo.com">
+  <section class="hero">
+    <div>
+      <span class="hero-eyebrow">Impresión 3D · La Paz</span>
+      <h1>En Pokidoki-3D<br><span class="accent-word">no solo imprimimos tus ideas </span>, las hacemos impreisonantes.</h1>
+      <p>Explorá el catálogo, elegí lo que más te guste y mandanos el pedido directo por WhatsApp. Sin formularios largos, sin vueltas.</p>
+      <div class="hero-actions">
+        <a href="#catalogo" class="btn btn-primary">Ver catálogo</a>
+        <a href="#especiales" class="btn btn-ghost">Pedido especial</a>
       </div>
-      <div class="field">
-        <label for="password">Contraseña</label>
-        <input type="password" id="password" autocomplete="current-password" placeholder="••••••••">
-      </div>
-      <button class="btn btn-primary" id="loginBtn">Entrar</button>
-      <div id="errorMsg"></div>
     </div>
-  </div>
+    <div class="hero-visual">
+      <div class="brand-card" id="brandCard">
+        <svg class="brand-accent left" viewBox="0 0 70 70" aria-hidden="true">
+          <path d="M6,40 Q18,32 27,18" pathLength="1"/>
+          <path d="M2,50 Q15,42 26,30" pathLength="1"/>
+          <path d="M0,58 Q12,52 23,42" pathLength="1"/>
+        </svg>
 
-  <!-- DASHBOARD -->
-  <div id="dashboard">
-    <div class="dash-head">
-      <div>
-        <h1>Tus productos</h1>
-        <span id="countLabel">0 productos</span>
-      </div>
-      <button class="btn btn-primary btn-small" id="newProductBtn" style="width:auto;">+ Agregar producto</button>
-    </div>
-
-    <!-- FORM -->
-    <div class="panel" id="formPanel" style="display:none;">
-      <h2 id="formTitle">Nuevo producto</h2>
-      <div class="form-grid">
-        <div class="field full">
-          <label for="pName">Nombre del producto</label>
-          <input type="text" id="pName" placeholder='Ej: Máscara "Kitsune Sombra"'>
-        </div>
-        <div class="field">
-          <label for="pCategory">Categoría</label>
-          <select id="pCategory">
-            <option value="mascaras">Máscaras</option>
-            <option value="llaveros">Llaveros</option>
-            <option value="figuras">Figuras</option>
-            <option value="armas">Réplicas de utilería</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="pPrice">Precio (con moneda)</label>
-          <input type="text" id="pPrice" placeholder="Bs. 90">
-        </div>
-        <div class="field full">
-          <label for="pDesc">Descripción</label>
-          <textarea id="pDesc" placeholder="Contale al cliente qué es, de qué está hecho, para qué sirve..."></textarea>
-        </div>
-        <div class="field">
-          <label for="pMeta">Detalle técnico (opcional)</label>
-          <input type="text" id="pMeta" placeholder="PLA+ · 6h impresión">
-        </div>
-        <div class="field full">
-          <label>Foto o GIF del producto (opcional)</label>
-          <div class="photo-field">
-            <div class="photo-preview" id="photoPreview">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-4 4-3-3-6 6"/></svg>
-            </div>
-            <div class="photo-actions">
-              <input type="file" id="pImageFile" accept="image/*" capture="environment">
-              <button type="button" class="btn btn-ghost btn-small" id="pickPhotoBtn" style="width:auto;">📷 Subir foto o GIF desde el celular</button>
-              <span class="photo-status" id="photoStatus">Sin foto — se usará un ícono genérico.</span>
-            </div>
+        <div class="brand-lockup">
+          <h1 class="brand-wordmark" id="brandWordmark" aria-label="PokiDoki"></h1>
+          <div class="brand-jp-row">
+            <span class="brand-jp-dot"></span>
+            <span class="brand-jp-text">ポキドキ</span>
+            <span class="brand-jp-dot"></span>
           </div>
-          <input type="hidden" id="pImage" value="">
+          <div class="brand-3d">3D</div>
+          <svg class="brand-swash" viewBox="0 0 220 22" aria-hidden="true">
+            <path d="M10,10 Q65,2 115,7 Q165,12 210,4" pathLength="1"/>
+          </svg>
+        </div>
+
+        <svg class="brand-accent right" viewBox="0 0 70 70" aria-hidden="true">
+          <path d="M6,40 Q18,32 27,18" pathLength="1"/>
+          <path d="M2,50 Q15,42 26,30" pathLength="1"/>
+          <path d="M0,58 Q12,52 23,42" pathLength="1"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <div id="catalogo"></div>
+
+
+  <!-- Product sections are injected by JS -->
+  <div id="sections"></div>
+
+  <section class="special" id="especiales">
+    <div class="special-box">
+      <div>
+        <h2>¿Tenés una idea distinta?</h2>
+        <p>Contanos qué querés imprimir: un regalo, una pieza que se rompió, un diseño que viste en algún lado. Lo evaluamos y te respondemos por WhatsApp con precio y tiempo estimado.</p>
+        <div class="special-tags">
+          <span>Diseños personalizados</span>
+          <span>Repuestos</span>
+          <span>Regalos únicos</span>
+          <span>Prototipos</span>
         </div>
       </div>
-      <p class="hint">Si no subís foto, se muestra un ícono genérico de la categoría. Podés subir imágenes normales (JPG, PNG) o GIF animados.</p>
-      <div class="form-actions">
-        <button class="btn btn-primary" id="saveProductBtn">Guardar producto</button>
-        <button class="btn btn-ghost" id="cancelFormBtn">Cancelar</button>
+      <div>
+        <div class="field">
+          <label for="specName">Tu nombre</label>
+          <input type="text" id="specName" placeholder="¿Cómo te llamás?">
+        </div>
+        <div class="field">
+          <label for="specComment">Contanos tu idea / sugerencia</label>
+          <textarea id="specComment" placeholder="Ej: quiero un soporte para celular con el logo de mi negocio, tamaño mediano, color negro..."></textarea>
+        </div>
+        <button class="btn btn-primary" id="sendSpecial">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.9.5 3.7 1.5 5.3L2 22l4.9-1.4C8.4 21.5 10.2 22 12 22c5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
+          Enviar pedido por WhatsApp
+        </button>
       </div>
     </div>
-
-    <!-- LIST -->
-    <div class="panel">
-      <h2>Catálogo actual</h2>
-      <div id="productList"><p class="state-msg">Cargando…</p></div>
-    </div>
-  </div>
+  </section>
 </main>
 
+<footer>
+  <span>© 2026 POKIDOKI-3D Studio · Piezas impresas bajo pedido en La Paz, Bolivia</span>
+  <span>Pagina creada por @adrianbg.srl</span>
+</footer>
+
+<a class="support-fab" id="fabSupport" href="#" target="_blank" rel="noopener" aria-label="Soporte por WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.9.5 3.7 1.5 5.3L2 22l4.9-1.4C8.4 21.5 10.2 22 12 22c5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3C4.4 15 4 13.5 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z"/></svg>
+</a>
+
 <script>
+/* ======================================================
+   CONFIGURACIÓN — reemplazá este número por el tuyo
+   Formato: código de país + número, sin espacios ni +
+   Ejemplo Bolivia: 591 + número = 59170000000
+====================================================== */
+const WHATSAPP_NUMBER = "+591 76576780"; // TODO: reemplazar con tu número real
+
+/* ======================================================
+   LOGO ANIMADO POKIDOKI 3D (tarjeta del hero)
+====================================================== */
+(function initBrandLogo(){
+  const word = "PokiDoki";
+  const wordmark = document.getElementById("brandWordmark");
+  wordmark.innerHTML = [...word].map((c,i)=>
+    `<span class="ch" style="--i:${i}">${c}</span>`
+  ).join("");
+
+  const card = document.getElementById("brandCard");
+  function playBrandAnim(){
+    card.classList.remove("play");
+    void card.offsetWidth; // fuerza reflow para reiniciar la animación
+    card.classList.add("play");
+  }
+  card.addEventListener("click", playBrandAnim);
+  playBrandAnim();
+})();
+
+/* ======================================================
+   ÍCONOS por categoría (SVG en línea, sin imágenes externas)
+====================================================== */
 const ICONS = {
-  mascaras: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 26c0-12 10-20 24-20s24 8 24 20c0 14-8 24-24 30-16-6-24-16-24-30Z"/><ellipse cx="22" cy="26" rx="5" ry="4"/><ellipse cx="42" cy="26" rx="5" ry="4"/><path d="M26 40c2 2 10 2 12 0"/></svg>`,
-  llaveros: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="22" cy="22" r="12"/><circle cx="22" cy="22" r="4"/><path d="M31 31 54 54M42 42l6-6M48 48l6-6"/></svg>`,
-  figuras: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="12" r="7"/><path d="M32 19v20M20 30l12-6 12 6M20 56l12-17 12 17"/></svg>`,
-  armas: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 40 44 12l4 6-8 8 12 12-8 8-12-12-8 8-6-6Z"/><path d="M12 44l-4 8 8-4"/></svg>`
+  mascaras: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8 26c0-12 10-20 24-20s24 8 24 20c0 14-8 24-24 30-16-6-24-16-24-30Z"/>
+      <ellipse cx="22" cy="26" rx="5" ry="4"/><ellipse cx="42" cy="26" rx="5" ry="4"/>
+      <path d="M26 40c2 2 10 2 12 0"/></svg>`,
+  llaveros: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="22" cy="22" r="12"/><circle cx="22" cy="22" r="4"/>
+      <path d="M31 31 54 54M42 42l6-6M48 48l6-6"/></svg>`,
+  figuras: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="32" cy="12" r="7"/><path d="M32 19v20M20 30l12-6 12 6M20 56l12-17 12 17"/></svg>`,
+  armas: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8 40 44 12l4 6-8 8 12 12-8 8-12-12-8 8-6-6Z"/><path d="M12 44l-4 8 8-4"/></svg>`,
+  especiales: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M32 6a16 16 0 0 0-9 29c2 1.5 3 3.5 3 6h12c0-2.5 1-4.5 3-6a16 16 0 0 0-9-29Z"/>
+      <path d="M27 47h10M29 53h6"/></svg>`
 };
-const CATEGORY_LABEL = { mascaras:"Máscaras", llaveros:"Llaveros", figuras:"Figuras", armas:"Réplicas de utilería" };
 
-const photoPreview = document.getElementById("photoPreview");
-const photoStatus = document.getElementById("photoStatus");
-const pImageFile = document.getElementById("pImageFile");
-const pImage = document.getElementById("pImage");
-const DEFAULT_PREVIEW_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-4 4-3-3-6 6"/></svg>`;
+/* ======================================================
+   CATEGORÍAS — los productos se cargan solos desde
+   Firestore (los agrega el dueño en admin.html)
+====================================================== */
+const CATEGORIES = [
+  { key:"mascaras",  label:"Máscaras", note:"Uso decorativo / cosplay" },
+  { key:"llaveros",  label:"Llaveros", note:"Personalizables" },
+  { key:"figuras",   label:"Figuras", note:"Piezas de colección" },
+  { key:"armas",     label:"Réplicas de utilería", note:"Decorativas, no funcionales" },
+];
 
-document.getElementById("pickPhotoBtn").addEventListener("click", ()=> pImageFile.click());
+/* ======================================================
+   WHATSAPP
+====================================================== */
+function openWhatsApp(message){
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  window.open(url, "_blank", "noopener");
+}
 
-pImageFile.addEventListener("change", async ()=>{
-  const file = pImageFile.files[0];
-  if(!file) return;
+function pedirProducto(name, price){
+  const msg = `Hola! 👋 Vi este producto en el catálogo de POKIDOKI-3D y me interesa:\n\n🖨️ ${name}\nPrecio: ${price}\n\n¿Me confirman disponibilidad y tiempo de entrega?`;
+  openWhatsApp(msg);
+}
 
-  photoStatus.textContent = "Subiendo foto...";
-  photoStatus.className = "photo-status uploading";
+document.getElementById("navSupport").addEventListener("click", (e)=>{
+  e.preventDefault();
+  openWhatsApp("Hola! 👋 Necesito ayuda con un pedido en POKIDOKI-3D.");
+});
+document.getElementById("fabSupport").addEventListener("click", (e)=>{
+  e.preventDefault();
+  openWhatsApp("Hola! 👋 Necesito ayuda con un pedido en POKIDOKI-3D.");
+});
+document.getElementById("sendSpecial").addEventListener("click", ()=>{
+  const name = document.getElementById("specName").value.trim();
+  const comment = document.getElementById("specComment").value.trim();
+  if(!comment){
+    document.getElementById("specComment").focus();
+    return;
+  }
+  let msg = `Hola! 👋 Quiero hacer un pedido especial en POKIDOKI-3D.\n\n`;
+  if(name) msg += `Nombre: ${name}\n`;
+  msg += `Idea / sugerencia: ${comment}`;
+  openWhatsApp(msg);
+});
 
-  try{
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+/* ======================================================
+   RENDER — se conecta a Firestore y arma las secciones
+   por categoría. Se vuelve a dibujar solo cada vez que
+   el dueño agrega/edita/borra algo desde admin.html.
+====================================================== */
+const sectionsWrap = document.getElementById("sections");
+let currentFilter = "todos";
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-      method: "POST",
-      body: formData
+sectionsWrap.innerHTML = '<p class="state-msg">Cargando catálogo…</p>';
+
+db.collection("products").orderBy("createdAt", "desc").onSnapshot(
+  renderCatalog,
+  (err)=>{
+    console.error(err);
+    sectionsWrap.innerHTML = '<p class="state-msg">No se pudo cargar el catálogo. Probá de nuevo en un momento.</p>';
+  }
+);
+
+function renderCatalog(snapshot){
+  const products = [];
+  snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+
+  sectionsWrap.innerHTML = "";
+
+  if(products.length === 0){
+    sectionsWrap.innerHTML = '<p class="state-msg">Todavía no hay productos cargados. ¡Volvé pronto!</p>';
+    return;
+  }
+
+  CATEGORIES.forEach(cat=>{
+    const items = products.filter(p => p.category === cat.key);
+    if(!items.length) return;
+
+    const section = document.createElement("section");
+    section.className = "category";
+    section.id = cat.key;
+    section.dataset.cat = cat.key;
+
+    section.innerHTML = `
+      <div class="section-head">
+        <h2>${cat.label}</h2>
+        <span>${cat.note}</span>
+      </div>
+      <div class="grid">
+        ${items.map(p => `
+          <article class="card" data-cat="${cat.key}">
+            <div class="card-media">
+              <span class="badge">3D PRINT</span>
+              ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}">` : ICONS[cat.key]}
+            </div>
+            <div class="card-body">
+              <h3>${p.name}</h3>
+              <p>${p.description || ""}</p>
+              <div class="card-meta"><span>${p.meta || ""}</span><span class="price">${p.price}</span></div>
+              <button class="btn order-btn" data-name="${(p.name||"").replace(/"/g,'&quot;')}" data-price="${p.price}">
+                <svg viewBox="0 0 24 24" fill="#25D366"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.9.5 3.7 1.5 5.3L2 22l4.9-1.4C8.4 21.5 10.2 22 12 22c5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
+                Pedir por WhatsApp
+              </button>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+    `;
+    sectionsWrap.appendChild(section);
+  });
+
+  // estilo "impresión por capas": delay escalonado por tarjeta
+  document.querySelectorAll(".grid").forEach(grid=>{
+    grid.querySelectorAll(".card").forEach((card, i)=>{
+      card.style.setProperty("--reveal-delay", `${(i % 6) * 0.08}s`);
     });
-    const data = await res.json();
+  });
 
-    if(!res.ok || !data.secure_url){
-      throw new Error(data.error?.message || "Error al subir");
+  applyFilter(currentFilter);
+}
+
+// delegación de eventos: funciona aunque las tarjetas se re-generen
+sectionsWrap.addEventListener("click", (e)=>{
+  const btn = e.target.closest(".order-btn");
+  if(btn) pedirProducto(btn.dataset.name, btn.dataset.price);
+});
+
+/* ======================================================
+   FILTRO por categoría
+====================================================== */
+function applyFilter(filter){
+  currentFilter = filter;
+  document.querySelectorAll("section.category").forEach(sec=>{
+    const show = filter === "todos" || sec.dataset.cat === filter;
+    sec.style.display = show ? "" : "none";
+  });
+}
+
+document.querySelectorAll(".chip").forEach(chip=>{
+  chip.addEventListener("click", ()=>{
+    document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+    chip.classList.add("active");
+    const filter = chip.dataset.filter;
+
+    if(filter === "especiales"){
+      document.getElementById("especiales").scrollIntoView({behavior:"smooth", block:"start"});
+      return;
     }
 
-    pImage.value = data.secure_url;
-    photoPreview.innerHTML = `<img src="${data.secure_url}" alt="">`;
-    photoStatus.textContent = "Foto subida ✓";
-    photoStatus.className = "photo-status";
-  } catch(err){
-    console.error(err);
-    photoStatus.textContent = "No se pudo subir la foto. Revisá tu conexión e intentá de nuevo.";
-    photoStatus.className = "photo-status error";
-  }
-});
+    applyFilter(filter);
 
-function resetPhotoField(existingUrl){
-  pImage.value = existingUrl || "";
-  pImageFile.value = "";
-  if(existingUrl){
-    photoPreview.innerHTML = `<img src="${existingUrl}" alt="">`;
-    photoStatus.textContent = "Foto actual del producto.";
-    photoStatus.className = "photo-status";
-  } else {
-    photoPreview.innerHTML = DEFAULT_PREVIEW_ICON;
-    photoStatus.textContent = "Sin foto — se usará un ícono genérico.";
-    photoStatus.className = "photo-status";
-  }
-}
-
-const loginScreen = document.getElementById("loginScreen");
-const dashboard = document.getElementById("dashboard");
-const logoutBtn = document.getElementById("logoutBtn");
-const errorMsg = document.getElementById("errorMsg");
-
-let editingId = null;
-let unsubscribe = null;
-
-/* ---------- AUTH ---------- */
-document.getElementById("loginBtn").addEventListener("click", ()=>{
-  errorMsg.textContent = "";
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  auth.signInWithEmailAndPassword(email, password).catch(err=>{
-    errorMsg.textContent = "No se pudo entrar: correo o contraseña incorrectos.";
-  });
-});
-
-document.getElementById("password").addEventListener("keydown", (e)=>{
-  if(e.key === "Enter") document.getElementById("loginBtn").click();
-});
-
-logoutBtn.addEventListener("click", ()=> auth.signOut());
-
-auth.onAuthStateChanged(user=>{
-  if(user){
-    loginScreen.style.display = "none";
-    dashboard.style.display = "block";
-    logoutBtn.style.display = "inline-flex";
-    listenProducts();
-  } else {
-    loginScreen.style.display = "flex";
-    dashboard.style.display = "none";
-    logoutBtn.style.display = "none";
-    if(unsubscribe) unsubscribe();
-  }
-});
-
-/* ---------- FORM ---------- */
-const formPanel = document.getElementById("formPanel");
-const formTitle = document.getElementById("formTitle");
-
-document.getElementById("newProductBtn").addEventListener("click", ()=>{
-  openForm();
-});
-document.getElementById("cancelFormBtn").addEventListener("click", closeForm);
-
-function openForm(product){
-  editingId = product ? product.id : null;
-  formTitle.textContent = product ? "Editar producto" : "Nuevo producto";
-  document.getElementById("pName").value = product?.name || "";
-  document.getElementById("pCategory").value = product?.category || "mascaras";
-  document.getElementById("pPrice").value = product?.price || "";
-  document.getElementById("pDesc").value = product?.description || "";
-  document.getElementById("pMeta").value = product?.meta || "";
-  resetPhotoField(product?.imageUrl || "");
-  formPanel.style.display = "block";
-  formPanel.scrollIntoView({behavior:"smooth", block:"start"});
-}
-
-function closeForm(){
-  editingId = null;
-  resetPhotoField("");
-  formPanel.style.display = "none";
-}
-
-document.getElementById("saveProductBtn").addEventListener("click", async ()=>{
-  const name = document.getElementById("pName").value.trim();
-  const price = document.getElementById("pPrice").value.trim();
-  if(!name || !price){
-    alert("Poné al menos el nombre y el precio del producto.");
-    return;
-  }
-  if(photoStatus.classList.contains("uploading")){
-    alert("Esperá a que termine de subirse la foto antes de guardar.");
-    return;
-  }
-  const data = {
-    name,
-    category: document.getElementById("pCategory").value,
-    price,
-    description: document.getElementById("pDesc").value.trim(),
-    meta: document.getElementById("pMeta").value.trim(),
-    imageUrl: document.getElementById("pImage").value.trim(),
-  };
-
-  const btn = document.getElementById("saveProductBtn");
-  btn.disabled = true; btn.textContent = "Guardando...";
-  try{
-    if(editingId){
-      await db.collection("products").doc(editingId).update(data);
-    } else {
-      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection("products").add(data);
+    if(filter !== "todos"){
+      const target = document.getElementById(filter);
+      if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
     }
-    closeForm();
-  } catch(err){
-    alert("Hubo un error al guardar. Intentá de nuevo.");
-    console.error(err);
-  } finally {
-    btn.disabled = false; btn.textContent = "Guardar producto";
-  }
+  });
 });
-
-/* ---------- LIST ---------- */
-const productList = document.getElementById("productList");
-const countLabel = document.getElementById("countLabel");
-
-function listenProducts(){
-  unsubscribe = db.collection("products").orderBy("createdAt","desc").onSnapshot(snap=>{
-    const items = [];
-    snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-    renderList(items);
-  }, err=>{
-    console.error(err);
-    productList.innerHTML = '<p class="state-msg">No se pudo cargar el catálogo.</p>';
-  });
-}
-
-function renderList(items){
-  countLabel.textContent = `${items.length} producto${items.length===1?"":"s"}`;
-
-  if(items.length === 0){
-    productList.innerHTML = '<p class="state-msg">Todavía no agregaste productos.</p>';
-    return;
-  }
-
-  productList.innerHTML = items.map(p => `
-    <div class="product-row">
-      <div class="product-thumb">
-        ${p.imageUrl ? `<img src="${p.imageUrl}" alt="">` : (ICONS[p.category] || "")}
-      </div>
-      <div class="product-info">
-        <h3>${p.name}</h3>
-        <span>${CATEGORY_LABEL[p.category] || p.category} · ${p.price}</span>
-      </div>
-      <div class="product-actions">
-        <button class="btn btn-ghost btn-small" data-edit="${p.id}">Editar</button>
-        <button class="btn btn-danger" data-delete="${p.id}">Eliminar</button>
-      </div>
-    </div>
-  `).join("");
-
-  productList.querySelectorAll("[data-edit]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      const product = items.find(i => i.id === btn.dataset.edit);
-      openForm(product);
-    });
-  });
-  productList.querySelectorAll("[data-delete]").forEach(btn=>{
-    btn.addEventListener("click", async ()=>{
-      if(!confirm("¿Eliminar este producto? No se puede deshacer.")) return;
-      await db.collection("products").doc(btn.dataset.delete).delete();
-    });
-  });
-}
 </script>
 </body>
 </html>
