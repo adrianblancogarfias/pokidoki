@@ -10,14 +10,14 @@
 <!-- Firebase (lee el catálogo cargado desde el panel de administración) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=3"></script>
+<script src="firebase-config.js?v=2"></script>
 <style>
   /* ============ TOKENS ============ */
   :root{
     --bg:#14161b;
     --bg-alt:#1b1e24;
     --surface:#23272f;
-    --accent:#ff6a2c;      /* filamento PLA naranja */
+    --accent:#FC6C85;      /* filamento PLA naranja */
     --accent-soft:#ff6a2c33;
     --accent-2:#33e0c3;    /* acento cian */
     --text:#edebe4;
@@ -369,7 +369,7 @@
 
 <header>
   <div class="nav-top">
-    <div class="logo"><span class="dot"></span>PRINTLAB<small>&nbsp;3D STUDIO</small></div>
+    <div class="logo"><span class="dot"></span>POKIDOKI-3D<small>&nbsp;3D STUDIO</small></div>
     <a class="nav-support" id="navSupport" href="#" target="_blank" rel="noopener">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.9.5 3.7 1.5 5.3L2 22l4.9-1.4C8.4 21.5 10.2 22 12 22c5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3C4.4 15 4 13.5 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z"/></svg>
       <span class="label">Soporte por WhatsApp</span>
@@ -389,7 +389,7 @@
   <section class="hero">
     <div>
       <span class="hero-eyebrow">Impresión 3D · La Paz</span>
-      <h1>De tu idea a una<br><span class="accent-word">pieza impresa</span>, capa por capa.</h1>
+      <h1>En Pokidoki-3D<br><span class="accent-word">no solo imprimimos tus ideas </span>, las hacemos impreisonantes.</h1>
       <p>Explorá el catálogo, elegí lo que más te guste y mandanos el pedido directo por WhatsApp. Sin formularios largos, sin vueltas.</p>
       <div class="hero-actions">
         <a href="#catalogo" class="btn btn-primary">Ver catálogo</a>
@@ -463,8 +463,8 @@
 </main>
 
 <footer>
-  <span>© 2026 PrintLab 3D Studio · Piezas impresas bajo pedido en La Paz, Bolivia</span>
-  <span>Materiales: PLA · PLA+ · Resina</span>
+  <span>© 2026 POKIDOKI-3D Studio · Piezas impresas bajo pedido en La Paz, Bolivia</span>
+  <span>Pagina creada por @adrianbg.srl</span>
 </footer>
 
 <a class="support-fab" id="fabSupport" href="#" target="_blank" rel="noopener" aria-label="Soporte por WhatsApp">
@@ -477,7 +477,7 @@
    Formato: código de país + número, sin espacios ni +
    Ejemplo Bolivia: 591 + número = 59170000000
 ====================================================== */
-const WHATSAPP_NUMBER = "59170000000"; // TODO: reemplazar con tu número real
+const WHATSAPP_NUMBER = "+591 76576780"; // TODO: reemplazar con tu número real
 
 /* ======================================================
    LOGO ANIMADO POKIDOKI 3D (tarjeta del hero)
@@ -539,17 +539,17 @@ function openWhatsApp(message){
 }
 
 function pedirProducto(name, price){
-  const msg = `Hola! 👋 Vi este producto en el catálogo de PrintLab y me interesa:\n\n🖨️ ${name}\nPrecio: ${price}\n\n¿Me confirman disponibilidad y tiempo de entrega?`;
+  const msg = `Hola! 👋 Vi este producto en el catálogo de POKIDOKI-3D y me interesa:\n\n🖨️ ${name}\nPrecio: ${price}\n\n¿Me confirman disponibilidad y tiempo de entrega?`;
   openWhatsApp(msg);
 }
 
 document.getElementById("navSupport").addEventListener("click", (e)=>{
   e.preventDefault();
-  openWhatsApp("Hola! 👋 Necesito ayuda con un pedido en PrintLab.");
+  openWhatsApp("Hola! 👋 Necesito ayuda con un pedido en POKIDOKI-3D.");
 });
 document.getElementById("fabSupport").addEventListener("click", (e)=>{
   e.preventDefault();
-  openWhatsApp("Hola! 👋 Necesito ayuda con un pedido en PrintLab.");
+  openWhatsApp("Hola! 👋 Necesito ayuda con un pedido en POKIDOKI-3D.");
 });
 document.getElementById("sendSpecial").addEventListener("click", ()=>{
   const name = document.getElementById("specName").value.trim();
@@ -558,7 +558,7 @@ document.getElementById("sendSpecial").addEventListener("click", ()=>{
     document.getElementById("specComment").focus();
     return;
   }
-  let msg = `Hola! 👋 Quiero hacer un pedido especial en PrintLab.\n\n`;
+  let msg = `Hola! 👋 Quiero hacer un pedido especial en POKIDOKI-3D.\n\n`;
   if(name) msg += `Nombre: ${name}\n`;
   msg += `Idea / sugerencia: ${comment}`;
   openWhatsApp(msg);
