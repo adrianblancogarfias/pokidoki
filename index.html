@@ -273,6 +273,11 @@
   }
   .detail-row.full{ grid-column:1 / -1; }
   .detail-row .detail-icon{ flex:none; font-size:0.85rem; }
+  .detail-row .detail-body{ display:flex; flex-direction:column; gap:2px; }
+  .detail-row .detail-label{
+    font-family:var(--font-mono); font-weight:600; color:var(--text);
+    font-size:0.68rem; letter-spacing:0.3px; text-transform:uppercase;
+  }
 
   .card-meta{
     display:flex; justify-content:flex-end; align-items:center;
@@ -388,7 +393,7 @@
   <section class="hero">
     <div>
       <span class="hero-eyebrow">Impresión 3D · La Paz</span>
-      <h1>En Pokidoki-3D<br><span class="accent-word">no solo imprimimos tus ideas </span>, las hacemos impresionantes.</h1>
+      <h1>En Pokidoki-3D<br><span class="accent-word">no solo imprimimos tus ideas </span>, las hacemos impreisonantes.</h1>
       <p>Explorá el catálogo, elegí lo que más te guste y mandanos el pedido directo por WhatsApp. Sin formularios largos, sin vueltas.</p>
       <div class="hero-actions">
         <a href="#catalogo" class="btn btn-primary">Ver catálogo</a>
@@ -594,9 +599,9 @@ function renderCatalog(snapshot){
               <h3>${p.name}</h3>
               ${p.description ? `<p>${p.description}</p>` : ""}
               <div class="card-details">
-                ${p.medidas ? `<div class="detail-row"><span class="detail-icon">📏</span><span>${p.medidas}</span></div>` : ""}
-                ${p.material ? `<div class="detail-row"><span class="detail-icon">🧵</span><span>${p.material}</span></div>` : ""}
-                ${p.meta ? `<div class="detail-row full"><span class="detail-icon">✨</span><span>${p.meta}</span></div>` : ""}
+                ${p.medidas ? `<div class="detail-row"><span class="detail-icon">📏</span><span class="detail-body"><span class="detail-label">Medidas</span><span>${p.medidas}</span></span></div>` : ""}
+                ${p.material ? `<div class="detail-row"><span class="detail-icon">🧵</span><span class="detail-body"><span class="detail-label">Material</span><span>${p.material}</span></span></div>` : ""}
+                ${p.meta ? `<div class="detail-row full"><span class="detail-icon">✨</span><span class="detail-body"><span class="detail-label">Detalle</span><span>${p.meta}</span></span></div>` : ""}
               </div>
               <div class="card-meta"><span class="price">${p.price}</span></div>
               <button class="btn order-btn" data-name="${(p.name||"").replace(/"/g,'&quot;')}" data-price="${p.price}">
