@@ -381,10 +381,7 @@
   </div>
   <nav class="filter-bar" id="filterBar">
     <button class="chip active" data-filter="todos">Todos</button>
-    <button class="chip" data-filter="mascaras">Máscaras</button>
-    <button class="chip" data-filter="llaveros">Llaveros</button>
-    <button class="chip" data-filter="figuras">Figuras</button>
-    <button class="chip" data-filter="armas">Armas</button>
+    <span id="categoryChips" style="display:contents;"></span>
     <button class="chip" data-filter="especiales">Pedidos Especiales</button>
   </nav>
 </header>
@@ -511,13 +508,12 @@ const ICONS = {
       <path d="M32 6a16 16 0 0 0-9 29c2 1.5 3 3.5 3 6h12c0-2.5 1-4.5 3-6a16 16 0 0 0-9-29Z"/>
       <path d="M27 47h10M29 53h6"/></svg>`
 };
+const DEFAULT_ICON = `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22 32 10 52 22 52 46 32 58 12 46Z"/><path d="M12 22 32 34 52 22M32 34v24"/></svg>`;
 
-const CATEGORIES = [
-  { key:"mascaras",  label:"Máscaras", note:"Uso decorativo / cosplay" },
-  { key:"llaveros",  label:"Llaveros", note:"Personalizables" },
-  { key:"figuras",   label:"Figuras", note:"Piezas de colección" },
-  { key:"armas",     label:"Réplicas de utilería", note:"Decorativas, no funcionales" },
-];
+let CATEGORIES = []; // se llena solo desde Firestore (colección "categories")
+let PRODUCTS = [];   // se llena solo desde Firestore (colección "products")
+let categoriesLoaded = false;
+let productsLoaded = false;
 
 function openWhatsApp(message){
   const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
@@ -551,21 +547,49 @@ document.getElementById("sendSpecial").addEventListener("click", ()=>{
 });
 
 const sectionsWrap = document.getElementById("sections");
+const categoryChipsWrap = document.getElementById("categoryChips");
 let currentFilter = "todos";
 
 sectionsWrap.innerHTML = '<p class="state-msg">Cargando catálogo…</p>';
 
+db.collection("categories").orderBy("createdAt", "asc").onSnapshot(
+  snap=>{
+    CATEGORIES = [];
+    snap.forEach(doc => CATEGORIES.push({ id: doc.id, ...doc.data() }));
+    categoriesLoaded = true;
+    renderFilterChips();
+    maybeRenderCatalog();
+  },
+  (err)=>{
+    console.error(err);
+  }
+);
+
 db.collection("products").orderBy("createdAt", "desc").onSnapshot(
-  renderCatalog,
+  snap=>{
+    PRODUCTS = [];
+    snap.forEach(doc => PRODUCTS.push({ id: doc.id, ...doc.data() }));
+    productsLoaded = true;
+    maybeRenderCatalog();
+  },
   (err)=>{
     console.error(err);
     sectionsWrap.innerHTML = '<p class="state-msg">No se pudo cargar el catálogo. Probá de nuevo en un momento.</p>';
   }
 );
 
-function renderCatalog(snapshot){
-  const products = [];
-  snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+function maybeRenderCatalog(){
+  if(categoriesLoaded && productsLoaded) renderCatalog();
+}
+
+function renderFilterChips(){
+  categoryChipsWrap.innerHTML = CATEGORIES.map(cat =>
+    `<button class="chip" data-filter="${cat.slug}">${cat.name}</button>`
+  ).join("");
+}
+
+function renderCatalog(){
+  const products = PRODUCTS;
 
   sectionsWrap.innerHTML = "";
 
@@ -575,25 +599,25 @@ function renderCatalog(snapshot){
   }
 
   CATEGORIES.forEach(cat=>{
-    const items = products.filter(p => p.category === cat.key);
+    const items = products.filter(p => p.category === cat.slug);
     if(!items.length) return;
 
     const section = document.createElement("section");
     section.className = "category";
-    section.id = cat.key;
-    section.dataset.cat = cat.key;
+    section.id = cat.slug;
+    section.dataset.cat = cat.slug;
 
     section.innerHTML = `
       <div class="section-head">
-        <h2>${cat.label}</h2>
-        <span>${cat.note}</span>
+        <h2>${cat.name}</h2>
+        <span>${cat.note || ""}</span>
       </div>
       <div class="grid">
         ${items.map(p => `
-          <article class="card" data-cat="${cat.key}">
+          <article class="card" data-cat="${cat.slug}">
             <div class="card-media">
               <span class="badge">3D PRINT</span>
-              ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}">` : ICONS[cat.key]}
+              ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}">` : (ICONS[cat.slug] || DEFAULT_ICON)}
             </div>
             <div class="card-body">
               <h3>${p.name}</h3>
@@ -638,24 +662,25 @@ function applyFilter(filter){
   });
 }
 
-document.querySelectorAll(".chip").forEach(chip=>{
-  chip.addEventListener("click", ()=>{
-    document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
-    chip.classList.add("active");
-    const filter = chip.dataset.filter;
+document.getElementById("filterBar").addEventListener("click", (e)=>{
+  const chip = e.target.closest(".chip");
+  if(!chip) return;
 
-    if(filter === "especiales"){
-      document.getElementById("especiales").scrollIntoView({behavior:"smooth", block:"start"});
-      return;
-    }
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+  chip.classList.add("active");
+  const filter = chip.dataset.filter;
 
-    applyFilter(filter);
+  if(filter === "especiales"){
+    document.getElementById("especiales").scrollIntoView({behavior:"smooth", block:"start"});
+    return;
+  }
 
-    if(filter !== "todos"){
-      const target = document.getElementById(filter);
-      if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
-    }
-  });
+  applyFilter(filter);
+
+  if(filter !== "todos"){
+    const target = document.getElementById(filter);
+    if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
+  }
 });
 </script>
 </body>
