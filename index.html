@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>pokidoki · Catálogo de Impresión 3D</title>
+<title>PRINTLAB · Catálogo de Impresión 3D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Luckiest+Guy&family=Yuji+Syuku&display=swap" rel="stylesheet">
@@ -249,7 +249,7 @@
   }
 
   .card-media{
-    position:relative; aspect-ratio:4/3; background:
+    position:relative; aspect-ratio:1/1; background:
       repeating-linear-gradient(180deg, #ffffff08 0 3px, transparent 3px 9px), var(--surface);
     display:flex; align-items:center; justify-content:center;
   }
@@ -263,15 +263,16 @@
 
   .card-body{ padding:18px 18px 20px; display:flex; flex-direction:column; gap:10px; flex:1; }
   .card-body h3{ font-family:var(--font-display); font-size:1.08rem; font-weight:600; }
-  .card-body p{ color:var(--text-mute); font-size:0.87rem; flex:1; }
+  .card-body p{ color:var(--text-mute); font-size:0.87rem; }
 
-  .card-details{ display:flex; flex-direction:column; gap:6px; margin:2px 0; }
+  .card-details{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:2px 0; }
   .detail-row{
-    display:flex; align-items:flex-start; gap:8px;
-    background:var(--surface); border:1px solid var(--line); border-radius:8px;
-    padding:8px 10px; font-size:0.78rem; color:var(--text-mute); line-height:1.35;
+    display:flex; align-items:flex-start; gap:6px;
+    background:var(--surface); border:1px solid var(--line); border-radius:7px;
+    padding:6px 8px; font-size:0.7rem; color:var(--text-mute); line-height:1.25;
   }
-  .detail-row .detail-icon{ flex:none; }
+  .detail-row.full{ grid-column:1 / -1; }
+  .detail-row .detail-icon{ flex:none; font-size:0.85rem; }
 
   .card-meta{
     display:flex; justify-content:flex-end; align-items:center;
@@ -594,7 +595,7 @@ function renderCatalog(snapshot){
               <div class="card-details">
                 ${p.medidas ? `<div class="detail-row"><span class="detail-icon">📏</span><span>${p.medidas}</span></div>` : ""}
                 ${p.material ? `<div class="detail-row"><span class="detail-icon">🧵</span><span>${p.material}</span></div>` : ""}
-                ${p.meta ? `<div class="detail-row"><span class="detail-icon">✨</span><span>${p.meta}</span></div>` : ""}
+                ${p.meta ? `<div class="detail-row full"><span class="detail-icon">✨</span><span>${p.meta}</span></div>` : ""}
               </div>
               <div class="card-meta"><span class="price">${p.price}</span></div>
               <button class="btn order-btn" data-name="${(p.name||"").replace(/"/g,'&quot;')}" data-price="${p.price}">
