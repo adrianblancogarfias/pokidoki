@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>POKIDOKI-3D · Catálogo de Impresión 3D</title>
+<title>PRINTLAB · Catálogo de Impresión 3D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Luckiest+Guy&family=Yuji+Syuku&display=swap" rel="stylesheet">
@@ -17,9 +17,9 @@
     --bg:#14161b;
     --bg-alt:#1b1e24;
     --surface:#23272f;
-    --accent:#FC6C85;      /* filamento PLA naranja */
+    --accent:#FC6C85;
     --accent-soft:#ff6a2c33;
-    --accent-2:#33e0c3;    /* acento cian */
+    --accent-2:#33e0c3;
     --text:#edebe4;
     --text-mute:#8b909b;
     --line:rgba(255,255,255,0.08);
@@ -43,7 +43,6 @@
   button{font-family:inherit; cursor:pointer;}
   a{color:inherit; text-decoration:none;}
 
-  /* ============ ANIMATED BACKGROUND ============ */
   .bg-layer{
     position:fixed; inset:0; z-index:-2; pointer-events:none;
     background:
@@ -68,7 +67,6 @@
     position:fixed; z-index:-1; pointer-events:none; opacity:0.5;
   }
 
-  /* ============ NAV ============ */
   header{
     position:sticky; top:0; z-index:50;
     backdrop-filter:blur(10px);
@@ -111,7 +109,6 @@
   .chip:hover{ color:var(--text); border-color:var(--accent-soft); }
   .chip.active{ color:#14161b; background:var(--accent); border-color:var(--accent); font-weight:500; }
 
-  /* ============ HERO ============ */
   .hero{
     padding:clamp(50px,8vw,90px) clamp(16px,4vw,40px) clamp(30px,5vw,50px);
     display:grid; grid-template-columns:1.1fr 0.9fr; gap:40px; align-items:center;
@@ -146,12 +143,9 @@
     max-width:380px; margin:0 auto;
   }
 
-  /* ============ LOGO POKIDOKI 3D (flotando, sin fondo) ============ */
-  /* Estas variables son EXCLUSIVAS del logo — no tocan el naranja
-     del resto del sitio (ese es --accent, más arriba). */
   :root{
-    --logo-text-color:#ffffff;   /* letras del logo: PokiDoki, ポキドキ y 3D */
-    --logo-accent-color:#ff2e46; /* rojo sandía: puntitos, subrayado y trazos rojos del logo */
+    --logo-text-color:#ffffff;
+    --logo-accent-color:#ff2e46;
   }
   .brand-card{
     position:relative;
@@ -221,7 +215,6 @@
     }
   }
 
-  /* ============ SECTIONS ============ */
   section.category{
     padding:10px clamp(16px,4vw,40px) 20px; max-width:1240px; margin:0 auto;
   }
@@ -244,7 +237,6 @@
     text-align:center; padding:40px 20px;
   }
 
-  /* ============ CARD ============ */
   .card{
     background:var(--bg-alt); border:1px solid var(--line); border-radius:var(--radius);
     overflow:hidden; display:flex; flex-direction:column;
@@ -272,8 +264,17 @@
   .card-body{ padding:18px 18px 20px; display:flex; flex-direction:column; gap:10px; flex:1; }
   .card-body h3{ font-family:var(--font-display); font-size:1.08rem; font-weight:600; }
   .card-body p{ color:var(--text-mute); font-size:0.87rem; flex:1; }
+
+  .card-details{ display:flex; flex-direction:column; gap:6px; margin:2px 0; }
+  .detail-row{
+    display:flex; align-items:flex-start; gap:8px;
+    background:var(--surface); border:1px solid var(--line); border-radius:8px;
+    padding:8px 10px; font-size:0.78rem; color:var(--text-mute); line-height:1.35;
+  }
+  .detail-row .detail-icon{ flex:none; }
+
   .card-meta{
-    display:flex; justify-content:space-between; align-items:center;
+    display:flex; justify-content:flex-end; align-items:center;
     font-family:var(--font-mono); font-size:0.78rem; color:var(--text-mute);
     border-top:1px dashed var(--line); padding-top:12px;
   }
@@ -287,7 +288,6 @@
   .order-btn:hover{ background:var(--accent); color:#14161b; }
   .order-btn svg{ width:16px; height:16px; }
 
-  /* ============ ESPECIALES ============ */
   .special{
     margin:70px auto 40px; max-width:1240px; padding:0 clamp(16px,4vw,40px);
   }
@@ -319,7 +319,6 @@
   .field input:focus, .field textarea:focus{ outline:none; border-color:var(--accent-2); }
   .special-box .btn-primary{ width:100%; justify-content:center; margin-top:4px; }
 
-  /* ============ FOOTER ============ */
   footer{
     border-top:1px solid var(--line); margin-top:60px;
     padding:30px clamp(16px,4vw,40px) 100px;
@@ -327,7 +326,6 @@
     font-family:var(--font-mono); font-size:0.76rem; color:var(--text-mute);
   }
 
-  /* ============ FLOATING WHATSAPP SUPPORT ============ */
   .support-fab{
     position:fixed; right:18px; bottom:18px; z-index:60;
     width:58px; height:58px; border-radius:50%;
@@ -337,7 +335,6 @@
   .support-fab svg{ width:28px; height:28px; fill:#0c1410; }
   @keyframes fabBounce{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
 
-  /* ============ RESPONSIVE ============ */
   @media (max-width:860px){
     .hero{ grid-template-columns:1fr; text-align:center; }
     .hero p{ margin-left:auto; margin-right:auto; }
@@ -377,7 +374,10 @@
   </div>
   <nav class="filter-bar" id="filterBar">
     <button class="chip active" data-filter="todos">Todos</button>
-    <!-- Las categorías (Máscaras, Llaveros, etc.) se insertan acá solas -->
+    <button class="chip" data-filter="mascaras">Máscaras</button>
+    <button class="chip" data-filter="llaveros">Llaveros</button>
+    <button class="chip" data-filter="figuras">Figuras</button>
+    <button class="chip" data-filter="armas">Armas</button>
     <button class="chip" data-filter="especiales">Pedidos Especiales</button>
   </nav>
 </header>
@@ -386,8 +386,8 @@
   <section class="hero">
     <div>
       <span class="hero-eyebrow">Impresión 3D · La Paz</span>
-      <h1>En Pokidoki-3D<br><span class="accent-word">no solo imprimimos tus ideas </span>, las hacemos impresionantes.</h1>
-      <p>Explorá el catálogo, elige lo que más te guste y mandanos el pedido directo por WhatsApp. Sin formularios largos, sin vueltas.</p>
+      <h1>En Pokidoki-3D<br><span class="accent-word">no solo imprimimos tus ideas </span>, las hacemos impreisonantes.</h1>
+      <p>Explorá el catálogo, elegí lo que más te guste y mandanos el pedido directo por WhatsApp. Sin formularios largos, sin vueltas.</p>
       <div class="hero-actions">
         <a href="#catalogo" class="btn btn-primary">Ver catálogo</a>
         <a href="#especiales" class="btn btn-ghost">Pedido especial</a>
@@ -469,16 +469,8 @@
 </a>
 
 <script>
-/* ======================================================
-   CONFIGURACIÓN — reemplazá este número por el tuyo
-   Formato: código de país + número, sin espacios ni +
-   Ejemplo Bolivia: 591 + número = 59170000000
-====================================================== */
 const WHATSAPP_NUMBER = "+59176576780"; // TODO: reemplazar con tu número real
 
-/* ======================================================
-   LOGO ANIMADO POKIDOKI 3D (tarjeta del hero)
-====================================================== */
 (function initBrandLogo(){
   const word = "PokiDoki";
   const wordmark = document.getElementById("brandWordmark");
@@ -489,16 +481,13 @@ const WHATSAPP_NUMBER = "+59176576780"; // TODO: reemplazar con tu número real
   const card = document.getElementById("brandCard");
   function playBrandAnim(){
     card.classList.remove("play");
-    void card.offsetWidth; // fuerza reflow para reiniciar la animación
+    void card.offsetWidth;
     card.classList.add("play");
   }
   card.addEventListener("click", playBrandAnim);
   playBrandAnim();
 })();
 
-/* ======================================================
-   ÍCONOS por categoría (SVG en línea, sin imágenes externas)
-====================================================== */
 const ICONS = {
   mascaras: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M8 26c0-12 10-20 24-20s24 8 24 20c0 14-8 24-24 30-16-6-24-16-24-30Z"/>
@@ -515,26 +504,14 @@ const ICONS = {
       <path d="M32 6a16 16 0 0 0-9 29c2 1.5 3 3.5 3 6h12c0-2.5 1-4.5 3-6a16 16 0 0 0-9-29Z"/>
       <path d="M27 47h10M29 53h6"/></svg>`
 };
-// Ícono genérico para categorías nuevas que el dueño cree (sin ícono propio)
-const DEFAULT_ICON = `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 22 32 10 52 22 52 46 32 58 12 46Z"/><path d="M12 22 32 34 52 22M32 34v24"/></svg>`;
 
-/* ======================================================
-   CATEGORÍAS — ahora se cargan desde Firestore (las crea
-   el dueño en admin.html), no están fijas en el código
-====================================================== */
-let CATEGORIES = [];
+const CATEGORIES = [
+  { key:"mascaras",  label:"Máscaras", note:"Uso decorativo / cosplay" },
+  { key:"llaveros",  label:"Llaveros", note:"Personalizables" },
+  { key:"figuras",   label:"Figuras", note:"Piezas de colección" },
+  { key:"armas",     label:"Réplicas de utilería", note:"Decorativas, no funcionales" },
+];
 
-function slugify(str){
-  return (str || "").toString().toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "") || "cat";
-}
-
-/* ======================================================
-   WHATSAPP
-====================================================== */
 function openWhatsApp(message){
   const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
   window.open(url, "_blank", "noopener");
@@ -566,97 +543,60 @@ document.getElementById("sendSpecial").addEventListener("click", ()=>{
   openWhatsApp(msg);
 });
 
-/* ======================================================
-   RENDER — se conecta a Firestore y arma las secciones
-   por categoría. Se vuelve a dibujar solo cada vez que
-   el dueño agrega/edita/borra algo desde admin.html.
-====================================================== */
 const sectionsWrap = document.getElementById("sections");
-const filterBar = document.getElementById("filterBar");
-const especialesChip = document.querySelector('.chip[data-filter="especiales"]');
 let currentFilter = "todos";
-let allProducts = null;   // null = todavía no llegó nada de Firestore
-let categoriesLoaded = false;
 
 sectionsWrap.innerHTML = '<p class="state-msg">Cargando catálogo…</p>';
 
-db.collection("categories").orderBy("createdAt", "asc").onSnapshot(
-  snap=>{
-    CATEGORIES = [];
-    snap.forEach(doc => CATEGORIES.push({ id: doc.id, ...doc.data() }));
-    categoriesLoaded = true;
-    renderFilterChips();
-    renderCatalog();
-  },
-  err=> console.error("Error cargando categorías:", err)
-);
-
 db.collection("products").orderBy("createdAt", "desc").onSnapshot(
-  snap=>{
-    allProducts = [];
-    snap.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
-    renderCatalog();
-  },
-  err=>{
+  renderCatalog,
+  (err)=>{
     console.error(err);
     sectionsWrap.innerHTML = '<p class="state-msg">No se pudo cargar el catálogo. Probá de nuevo en un momento.</p>';
   }
 );
 
-function renderFilterChips(){
-  // saca los chips de categoría viejos (deja "Todos" y "Pedidos Especiales")
-  filterBar.querySelectorAll('.chip[data-cat-chip]').forEach(el => el.remove());
-
-  CATEGORIES.forEach(cat=>{
-    const btn = document.createElement("button");
-    btn.className = "chip";
-    btn.dataset.filter = cat.slug;
-    btn.dataset.catChip = "1";
-    btn.textContent = cat.name;
-    btn.addEventListener("click", ()=> selectFilter(cat.slug, btn));
-    filterBar.insertBefore(btn, especialesChip);
-  });
-}
-
-function renderCatalog(){
-  if(allProducts === null || !categoriesLoaded) return; // esperando datos
+function renderCatalog(snapshot){
+  const products = [];
+  snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
 
   sectionsWrap.innerHTML = "";
 
-  if(CATEGORIES.length === 0){
-    sectionsWrap.innerHTML = '<p class="state-msg">Todavía no hay categorías creadas. Entrá a admin.html para crear la primera.</p>';
-    return;
-  }
-  if(allProducts.length === 0){
+  if(products.length === 0){
     sectionsWrap.innerHTML = '<p class="state-msg">Todavía no hay productos cargados. ¡Volvé pronto!</p>';
     return;
   }
 
   CATEGORIES.forEach(cat=>{
-    const items = allProducts.filter(p => p.category === cat.slug);
+    const items = products.filter(p => p.category === cat.key);
     if(!items.length) return;
 
     const section = document.createElement("section");
     section.className = "category";
-    section.id = cat.slug;
-    section.dataset.cat = cat.slug;
+    section.id = cat.key;
+    section.dataset.cat = cat.key;
 
     section.innerHTML = `
       <div class="section-head">
-        <h2>${cat.name}</h2>
-        <span>${cat.note || ""}</span>
+        <h2>${cat.label}</h2>
+        <span>${cat.note}</span>
       </div>
       <div class="grid">
         ${items.map(p => `
-          <article class="card" data-cat="${cat.slug}">
+          <article class="card" data-cat="${cat.key}">
             <div class="card-media">
               <span class="badge">3D PRINT</span>
-              ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}">` : (ICONS[cat.slug] || DEFAULT_ICON)}
+              ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}">` : ICONS[cat.key]}
             </div>
             <div class="card-body">
               <h3>${p.name}</h3>
-              <p>${p.description || ""}</p>
-              <div class="card-meta"><span>${p.meta || ""}</span><span class="price">${p.price}</span></div>
+              ${p.description ? `<p>${p.description}</p>` : ""}
+              <div class="card-details">
+                ${p.medidas ? `<div class="detail-row"><span class="detail-icon">📏</span><span>${p.medidas}</span></div>` : ""}
+                ${p.material ? `<div class="detail-row"><span class="detail-icon">🧵</span><span>${p.material}</span></div>` : ""}
+                ${p.meta ? `<div class="detail-row"><span class="detail-icon">✨</span><span>${p.meta}</span></div>` : ""}
+              </div>
+              <div class="card-meta"><span class="price">${p.price}</span></div>
               <button class="btn order-btn" data-name="${(p.name||"").replace(/"/g,'&quot;')}" data-price="${p.price}">
                 <svg viewBox="0 0 24 24" fill="#25D366"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.9.5 3.7 1.5 5.3L2 22l4.9-1.4C8.4 21.5 10.2 22 12 22c5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
                 Pedir por WhatsApp
@@ -669,7 +609,6 @@ function renderCatalog(){
     sectionsWrap.appendChild(section);
   });
 
-  // estilo "impresión por capas": delay escalonado por tarjeta
   document.querySelectorAll(".grid").forEach(grid=>{
     grid.querySelectorAll(".card").forEach((card, i)=>{
       card.style.setProperty("--reveal-delay", `${(i % 6) * 0.08}s`);
@@ -679,15 +618,11 @@ function renderCatalog(){
   applyFilter(currentFilter);
 }
 
-// delegación de eventos: funciona aunque las tarjetas se re-generen
 sectionsWrap.addEventListener("click", (e)=>{
   const btn = e.target.closest(".order-btn");
   if(btn) pedirProducto(btn.dataset.name, btn.dataset.price);
 });
 
-/* ======================================================
-   FILTRO por categoría
-====================================================== */
 function applyFilter(filter){
   currentFilter = filter;
   document.querySelectorAll("section.category").forEach(sec=>{
@@ -696,24 +631,24 @@ function applyFilter(filter){
   });
 }
 
-function selectFilter(filter, chipEl){
-  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
-  chipEl.classList.add("active");
-  applyFilter(filter);
-  const target = document.getElementById(filter);
-  if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
-}
+document.querySelectorAll(".chip").forEach(chip=>{
+  chip.addEventListener("click", ()=>{
+    document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+    chip.classList.add("active");
+    const filter = chip.dataset.filter;
 
-// chips fijos: "Todos" y "Pedidos Especiales"
-document.querySelector('.chip[data-filter="todos"]').addEventListener("click", function(){
-  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
-  this.classList.add("active");
-  applyFilter("todos");
-});
-especialesChip.addEventListener("click", function(){
-  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
-  this.classList.add("active");
-  document.getElementById("especiales").scrollIntoView({behavior:"smooth", block:"start"});
+    if(filter === "especiales"){
+      document.getElementById("especiales").scrollIntoView({behavior:"smooth", block:"start"});
+      return;
+    }
+
+    applyFilter(filter);
+
+    if(filter !== "todos"){
+      const target = document.getElementById(filter);
+      if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+  });
 });
 </script>
 </body>
