@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POKIDOKI · Panel de administración</title>
+<title>POKIDOKI-3D · Panel de administración</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,11 +11,11 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=2"></script>
+<script src="firebase-config.js?v=3"></script>
 <style>
   :root{
     --bg:#14161b; --bg-alt:#1b1e24; --surface:#23272f;
-    --accent:#FC6C85; --accent-2:#33e0c3;
+    --accent:#ff6a2c; --accent-2:#33e0c3;
     --text:#edebe4; --text-mute:#8b909b; --line:rgba(255,255,255,0.08);
     --radius:14px;
     --font-display:'Chakra Petch', sans-serif;
@@ -177,23 +177,6 @@
       <button class="btn btn-primary btn-small" id="newProductBtn" style="width:auto;">+ Agregar producto</button>
     </div>
 
-    <!-- CATEGORÍAS -->
-    <div class="panel">
-      <h2>Categorías</h2>
-      <div class="form-grid" style="margin-bottom:14px;">
-        <div class="field">
-          <label for="catName">Nueva categoría</label>
-          <input type="text" id="catName" placeholder="Ej: Portalápices">
-        </div>
-        <div class="field">
-          <label for="catNote">Descripción corta (opcional)</label>
-          <input type="text" id="catNote" placeholder="Ej: Para oficina y escritorio">
-        </div>
-      </div>
-      <button class="btn btn-primary btn-small" id="addCategoryBtn" style="width:auto;">+ Agregar categoría</button>
-      <div id="categoryList" style="margin-top:16px;"><p class="state-msg">Cargando…</p></div>
-    </div>
-
     <!-- FORM -->
     <div class="panel" id="formPanel" style="display:none;">
       <h2 id="formTitle">Nuevo producto</h2>
@@ -205,20 +188,31 @@
         <div class="field">
           <label for="pCategory">Categoría</label>
           <select id="pCategory">
-            <option value="">Cargando categorías…</option>
+            <option value="mascaras">Máscaras</option>
+            <option value="llaveros">Llaveros</option>
+            <option value="figuras">Figuras</option>
+            <option value="armas">Réplicas de utilería</option>
           </select>
         </div>
         <div class="field">
-          <label for="pPrice">Precio</label>
+          <label for="pPrice">Precio (con moneda)</label>
           <input type="text" id="pPrice" placeholder="Bs. 90">
         </div>
         <div class="field full">
-          <label for="pDesc">Descripción</label>
-          <textarea id="pDesc" placeholder="Contale al cliente qué es, de qué está hecho, para qué sirve..."></textarea>
+          <label for="pDesc">Nota descriptiva</label>
+          <textarea id="pDesc" placeholder="Ej: este es otro modelo de los llaveros de gatito con su mochila transportadora"></textarea>
         </div>
         <div class="field">
-          <label for="pMeta">Detalle técnico (opcional)</label>
-          <input type="text" id="pMeta" placeholder="6h impresión">
+          <label for="pMedidas">📏 Medidas</label>
+          <input type="text" id="pMedidas" placeholder="Mochila: 5x4 cm · Gatito: 4x2.5 cm">
+        </div>
+        <div class="field">
+          <label for="pMaterial">🧵 Material</label>
+          <input type="text" id="pMaterial" placeholder="PLA biodegradable, resistente y ligero">
+        </div>
+        <div class="field full">
+          <label for="pMeta">Detalle extra (opcional)</label>
+          <input type="text" id="pMeta" placeholder="Ej: cabeza articulada, incluye argolla metálica">
         </div>
         <div class="field full">
           <label>Foto o GIF del producto (opcional)</label>
@@ -235,7 +229,7 @@
           <input type="hidden" id="pImage" value="">
         </div>
       </div>
-      <p class="hint">Si no subes la foto, se muestra un ícono genérico de la categoría. Podés subir imágenes normales (JPG, PNG) o GIF animados.</p>
+      <p class="hint">Si no subís foto, se muestra un ícono genérico de la categoría. Podés subir imágenes normales (JPG, PNG) o GIF animados.</p>
       <div class="form-actions">
         <button class="btn btn-primary" id="saveProductBtn">Guardar producto</button>
         <button class="btn btn-ghost" id="cancelFormBtn">Cancelar</button>
@@ -257,16 +251,7 @@ const ICONS = {
   figuras: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="12" r="7"/><path d="M32 19v20M20 30l12-6 12 6M20 56l12-17 12 17"/></svg>`,
   armas: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 40 44 12l4 6-8 8 12 12-8 8-12-12-8 8-6-6Z"/><path d="M12 44l-4 8 8-4"/></svg>`
 };
-const DEFAULT_ICON = `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22 32 10 52 22 52 46 32 58 12 46Z"/><path d="M12 22 32 34 52 22M32 34v24"/></svg>`;
-
-let CATEGORIES = []; // se llena solo desde Firestore
-
-function slugify(str){
-  return (str || "").toString().toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "") || "cat";
-}
+const CATEGORY_LABEL = { mascaras:"Máscaras", llaveros:"Llaveros", figuras:"Figuras", armas:"Réplicas de utilería" };
 
 const photoPreview = document.getElementById("photoPreview");
 const photoStatus = document.getElementById("photoStatus");
@@ -347,107 +332,17 @@ document.getElementById("password").addEventListener("keydown", (e)=>{
 
 logoutBtn.addEventListener("click", ()=> auth.signOut());
 
-let unsubscribeCategories = null;
-
 auth.onAuthStateChanged(user=>{
   if(user){
     loginScreen.style.display = "none";
     dashboard.style.display = "block";
     logoutBtn.style.display = "inline-flex";
-    listenCategories();
     listenProducts();
   } else {
     loginScreen.style.display = "flex";
     dashboard.style.display = "none";
     logoutBtn.style.display = "none";
     if(unsubscribe) unsubscribe();
-    if(unsubscribeCategories) unsubscribeCategories();
-  }
-});
-
-/* ---------- CATEGORÍAS ---------- */
-const categoryList = document.getElementById("categoryList");
-const pCategorySelect = document.getElementById("pCategory");
-
-function listenCategories(){
-  unsubscribeCategories = db.collection("categories").orderBy("createdAt","asc").onSnapshot(snap=>{
-    CATEGORIES = [];
-    snap.forEach(doc => CATEGORIES.push({ id: doc.id, ...doc.data() }));
-    renderCategoryList();
-    renderCategorySelect();
-  }, err=>{
-    console.error(err);
-    categoryList.innerHTML = '<p class="state-msg">No se pudieron cargar las categorías.</p>';
-  });
-}
-
-function renderCategoryList(){
-  if(CATEGORIES.length === 0){
-    categoryList.innerHTML = '<p class="state-msg">Todavía no creaste ninguna categoría.</p>';
-    return;
-  }
-  categoryList.innerHTML = CATEGORIES.map(cat => `
-    <div class="product-row">
-      <div class="product-info">
-        <h3>${cat.name}</h3>
-        <span>${cat.note || ""}</span>
-      </div>
-      <div class="product-actions">
-        <button class="btn btn-danger" data-delete-cat="${cat.id}" data-slug="${cat.slug}">Eliminar</button>
-      </div>
-    </div>
-  `).join("");
-
-  categoryList.querySelectorAll("[data-delete-cat]").forEach(btn=>{
-    btn.addEventListener("click", async ()=>{
-      const enUso = (window.__lastProducts || []).some(p => p.category === btn.dataset.slug);
-      const aviso = enUso
-        ? "Hay productos usando esta categoría — si la borrás, esos productos van a dejar de aparecer en el catálogo hasta que les cambies la categoría. ¿Eliminar de todas formas?"
-        : "¿Eliminar esta categoría?";
-      if(!confirm(aviso)) return;
-      await db.collection("categories").doc(btn.dataset.deleteCat).delete();
-    });
-  });
-}
-
-function renderCategorySelect(){
-  const current = pCategorySelect.value;
-  if(CATEGORIES.length === 0){
-    pCategorySelect.innerHTML = '<option value="">Creá una categoría primero</option>';
-    return;
-  }
-  pCategorySelect.innerHTML = CATEGORIES.map(cat =>
-    `<option value="${cat.slug}">${cat.name}</option>`
-  ).join("");
-  if(current && CATEGORIES.some(c => c.slug === current)) pCategorySelect.value = current;
-}
-
-document.getElementById("addCategoryBtn").addEventListener("click", async ()=>{
-  const name = document.getElementById("catName").value.trim();
-  const note = document.getElementById("catNote").value.trim();
-  if(!name){
-    alert("Ponele un nombre a la categoría.");
-    return;
-  }
-  let slug = slugify(name);
-  // evita choques si ya existe una categoría con el mismo slug
-  if(CATEGORIES.some(c => c.slug === slug)){
-    slug = slug + "-" + Math.floor(Math.random()*1000);
-  }
-  const btn = document.getElementById("addCategoryBtn");
-  btn.disabled = true; btn.textContent = "Guardando...";
-  try{
-    await db.collection("categories").add({
-      name, note, slug,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    document.getElementById("catName").value = "";
-    document.getElementById("catNote").value = "";
-  } catch(err){
-    alert("No se pudo crear la categoría. Intentá de nuevo.");
-    console.error(err);
-  } finally {
-    btn.disabled = false; btn.textContent = "+ Agregar categoría";
   }
 });
 
@@ -464,9 +359,11 @@ function openForm(product){
   editingId = product ? product.id : null;
   formTitle.textContent = product ? "Editar producto" : "Nuevo producto";
   document.getElementById("pName").value = product?.name || "";
-  document.getElementById("pCategory").value = product?.category || (CATEGORIES[0]?.slug || "");
+  document.getElementById("pCategory").value = product?.category || "mascaras";
   document.getElementById("pPrice").value = product?.price || "";
   document.getElementById("pDesc").value = product?.description || "";
+  document.getElementById("pMedidas").value = product?.medidas || "";
+  document.getElementById("pMaterial").value = product?.material || "";
   document.getElementById("pMeta").value = product?.meta || "";
   resetPhotoField(product?.imageUrl || "");
   formPanel.style.display = "block";
@@ -495,6 +392,8 @@ document.getElementById("saveProductBtn").addEventListener("click", async ()=>{
     category: document.getElementById("pCategory").value,
     price,
     description: document.getElementById("pDesc").value.trim(),
+    medidas: document.getElementById("pMedidas").value.trim(),
+    material: document.getElementById("pMaterial").value.trim(),
     meta: document.getElementById("pMeta").value.trim(),
     imageUrl: document.getElementById("pImage").value.trim(),
   };
@@ -525,17 +424,11 @@ function listenProducts(){
   unsubscribe = db.collection("products").orderBy("createdAt","desc").onSnapshot(snap=>{
     const items = [];
     snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-    window.__lastProducts = items;
     renderList(items);
   }, err=>{
     console.error(err);
     productList.innerHTML = '<p class="state-msg">No se pudo cargar el catálogo.</p>';
   });
-}
-
-function categoryName(slug){
-  const cat = CATEGORIES.find(c => c.slug === slug);
-  return cat ? cat.name : (slug || "Sin categoría");
 }
 
 function renderList(items){
@@ -549,11 +442,11 @@ function renderList(items){
   productList.innerHTML = items.map(p => `
     <div class="product-row">
       <div class="product-thumb">
-        ${p.imageUrl ? `<img src="${p.imageUrl}" alt="">` : (ICONS[p.category] || DEFAULT_ICON)}
+        ${p.imageUrl ? `<img src="${p.imageUrl}" alt="">` : (ICONS[p.category] || "")}
       </div>
       <div class="product-info">
         <h3>${p.name}</h3>
-        <span>${categoryName(p.category)} · ${p.price}</span>
+        <span>${CATEGORY_LABEL[p.category] || p.category} · ${p.price}</span>
       </div>
       <div class="product-actions">
         <button class="btn btn-ghost btn-small" data-edit="${p.id}">Editar</button>
